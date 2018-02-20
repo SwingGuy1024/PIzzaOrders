@@ -16,7 +16,7 @@ import javax.validation.constraints.*;
  * MenuItemDto
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T09:31:20.427Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T19:52:41.440Z")
 
 public class MenuItemDto   {
   @JsonProperty("name")

@@ -78,7 +78,7 @@ public class CustomerOrder {
   }
 
   public void setOrderTime(final Date orderTime) {
-    this.orderTime = cloneDate(orderTime);
+    this.orderTime = cloneDate(orderTime);  
   }
 
   public Date getCompleteTime() {

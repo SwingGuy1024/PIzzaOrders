@@ -1,40 +1,19 @@
 swagger: '2.0'
 info:
-  description: System to keep track of food orders
+  description: System to keep track of customer orders
   version: 1.0.0
-  title: Food Orders API
+  title: Customer Orders API
   contact:
     email: SwingGuy1024@yahoo.com 
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths:
-  /foodOption:
-    put:
-      summary: And a food option to the enumeration of options
-      description: |
-        Add a food option to the enumeration of options. In a complete system, this would contain APIs to update, search, and delete, but for this demo, add will do.
-        A Food Option is an option that may conceivably be added to many different menu items, such as olives, which could be added to a pizza or a submarine sandwich. It consists of nothing but a name, so the foodOption table is essentially a modifiable enumeration. These are referred to in the MenuItemOption table.
-      operationId: addFoodOption
-      produces:
-      - application/json
-      parameters:
-      - in: query
-        name: name
-        description: View text of the Food option
-        required: true
-        type: string
-      responses:
-        201:
-          description: Food Option Created
-        400:
-          description: Bad Request
   /menuItem:
     put:
       summary: Add a MenuItem, with MenuItemOptions.
       description: |
-        Add a MenuItem, complete with MenuItemOptions, to the database. In a complete system, this would also contain APIs to update, search, and delete MenuItems, but for this demo, this will do.
-        A MenuItem is a FoodOption that has been added to a specific MenuItem.
+        Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed from the MenuItem API
       operationId: addMenuItem
       parameters: 
       - in: body
@@ -48,6 +27,45 @@ paths:
       responses:
         201:
           description: Menu Item Created
+        400:
+          description: Bad Request
+  /menuItem/addOption/{menuItemId}:
+    post:
+      summary: Add a menuItemOption
+      description: | 
+        Add a MenuItemOption to a MenuItem
+      operationId: addMenuItemOption
+      parameters:
+      - in: path
+        name: menuItemId
+        required: true
+        description: ID of the MenuItem getting the new option
+        type: string
+      - in: body
+        required: true
+        name: option
+        description: MenuItemOption
+        schema:
+          $ref: '#/definitions/MenuItemOptionDto'
+      responses:
+        201:
+          description: MenuItemOption added
+        400:
+          description: Bad Request
+  /menuItem/deleteOption/{optionId}:
+    delete:
+      summary: Delete a MenuItemOption
+      description: Delete a MenuItemOption from a MenuItem.
+      operationId: deleteOption
+      parameters:
+      - in: path
+        name: optionId
+        required: true
+        description: ID of the MenuItemOpton to delete
+        type: string
+      responses:
+        200:
+          description: MenuItemOption added
         400:
           description: Bad Request
   /order:
@@ -179,29 +197,18 @@ paths:
         400:
           description: bad request
 definitions:
-  FoodOptionDto:
-    properties:
-      option:
-        type: string
-        description: Option for food, such as no cheese or pepperoni. The table is just a modifieable enumeration.
-      id:
-        type: integer
-        format: int32
-    required:
-    - option
-    - id
   MenuItemOptionDto:
     type: object
-    description: Links a FoodOption to a MenuItem
+    description: Option for a MenuItem
     properties:
-      foodOption:
-        $ref: '#/definitions/FoodOptionDto'
+      name:
+        type: string
       menuItem:
         type: object
         $ref: '#/definitions/MenuItemDto'
       deltaPrice:
         type: string
-        description: floating point price. Strings are easier to work with.
+        description: Floating point price. Strings are easier to work with.
       id:
         type: integer
         format: int32
@@ -212,7 +219,7 @@ definitions:
         type: string
       itemPrice:
         type: string
-        description: floating point price. Strings are easier to work with.
+        description: Floating point price. Strings are easier to work with.
       allowedOptions:
         type: array
         items:
@@ -234,7 +241,7 @@ definitions:
         description: Order complete
       finalPrice:
         type: string
-        description: floating point price. Strings are easier to work with.
+        description: Floating point price. Strings are easier to work with.
       id:
         type: integer
         format: int32
@@ -250,4 +257,6 @@ schemes:
  - https
  - http
 # Added by API Auto Mocking Plugin
-basePath: /NeptuneDreams/CustomerOrders/1.0.0
+# basePath: /NeptuneDreams/CustomerOrders/1.0.0
+# Added by API Auto Mocking Plugin
+basePath: /NeptuneDreams/FoodOrders/1.0.0

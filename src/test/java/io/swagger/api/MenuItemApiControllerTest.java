@@ -6,11 +6,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import com.disney.miguelmunoz.challenge.Application;
-import com.disney.miguelmunoz.challenge.entities.FoodOption;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.model.FoodOptionDto;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
 import org.junit.Test;
@@ -48,11 +46,8 @@ public class MenuItemApiControllerTest {
 
   @Test
   public void testBadInput() {
-    FoodOptionDto foodOptionDto = new FoodOptionDto();
-    foodOptionDto.setOption("BadOption");
-
     MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
-    menuItemOption.setFoodOption(foodOptionDto);
+    menuItemOption.setName("");
     menuItemOption.setDeltaPrice("5.00");
 
     MenuItemDto menuItemDto = new MenuItemDto();
@@ -64,19 +59,12 @@ public class MenuItemApiControllerTest {
   }
   
   public void testGoodInput() {
-    FoodOptionDto oliveOptionDto = new FoodOptionDto();
-    oliveOptionDto.setOption("olives");
-    oliveOptionDto.setId(1);
-    FoodOptionDto pepperoniOptionDto = new FoodOptionDto();
-    pepperoniOptionDto.setOption("pepperoni");
-    pepperoniOptionDto.setId(2);
-
     MenuItemOptionDto oliveOption = new MenuItemOptionDto();
-    oliveOption.setFoodOption(oliveOptionDto);
+    oliveOption.setName("olives");
     oliveOption.setDeltaPrice("0.30");
     
     MenuItemOptionDto pepOption = new MenuItemOptionDto();
-    pepOption.setFoodOption(pepperoniOptionDto);
+    pepOption.setName("pepperoni");
     pepOption.setDeltaPrice("0.40");
 
     MenuItemDto menuItemDto = new MenuItemDto();
@@ -92,16 +80,11 @@ public class MenuItemApiControllerTest {
       assertEquals("0.50", item.getItemPrice().toString());
       assertEquals("GoodItem", item.getName());
       Set<String> foodOptionSet = new HashSet<>();
-      Set<Integer> foodOptionIdSet = new HashSet<>();
       Collection<MenuItemOption> optionList = item.getMenuItemOptionList();
       for (MenuItemOption option: optionList) {
-        final FoodOption foodOption = option.getFoodOption();
-        foodOptionSet.add(foodOption.getName());
-        foodOptionIdSet.add(foodOption.getId());
+        foodOptionSet.add(option.getName());
       }
       assertThat(foodOptionSet, hasItems("olives", "pepperoni"));
-      assertThat(foodOptionIdSet, hasItems(Integer.valueOf(1), Integer.valueOf(2)));
-      assertEquals(2, foodOptionIdSet.size());
       assertEquals(2, foodOptionSet.size());
     }
     

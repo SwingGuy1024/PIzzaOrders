@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T19:52:41.440Z")
 
 @Api(value = "order", description = "the order API")
 public interface OrderApi {
@@ -34,7 +34,7 @@ public interface OrderApi {
     @RequestMapping(value = "/order",
         consumes = { "application/json" },
         method = RequestMethod.PUT)
-    ResponseEntity<Void> addOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody CustomerOrderDto order);
+    ResponseEntity<Void> addOrder(@ApiParam(value = "The contents of the order", required = true) @Valid @RequestBody CustomerOrderDto order);
 
 
     @ApiOperation(value = "Mark an order completed", nickname = "completeOrder", notes = "Mark an order complete. ", tags={  })
@@ -43,7 +43,7 @@ public interface OrderApi {
         @ApiResponse(code = 400, message = "Bad Request") })
     @RequestMapping(value = "/order/complete/{id}",
         method = RequestMethod.POST)
-    ResponseEntity<Void> completeOrder(@ApiParam(value = "The id of the completed order",required=true) @PathVariable("id") String id);
+    ResponseEntity<Void> completeOrder(@ApiParam(value = "The id of the completed order", required = true) @PathVariable("id") String id);
 
 
     @ApiOperation(value = "delete an order", nickname = "deleteOrder", notes = "Update an order for a MenuItem, with a list of MenuItemOptions. ", tags={  })
@@ -52,7 +52,7 @@ public interface OrderApi {
         @ApiResponse(code = 400, message = "Bad Request") })
     @RequestMapping(value = "/order/{id}",
         method = RequestMethod.DELETE)
-    ResponseEntity<Void> deleteOrder(@ApiParam(value = "The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.",required=true) @PathVariable("id") String id);
+    ResponseEntity<Void> deleteOrder(@ApiParam(value = "The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.", required = true) @PathVariable("id") String id);
 
 
     @ApiOperation(value = "search for an order by completed status and date range", nickname = "searchByComplete", notes = "Retrieve an order by its completed status, with a date range. Returns an array of items ", tags={  })
@@ -63,7 +63,7 @@ public interface OrderApi {
     @RequestMapping(value = "/order/search",
         produces = { "applicaton/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Void> searchByComplete(@NotNull @ApiParam(value = "starting date of the order to search for, inclusive, or the date, if no ending date is specified. Format: yyyy-MM-dd ", required = true) @Valid @RequestParam(value = "startingDate", required = true) OffsetDateTime startingDate,@ApiParam(value = "If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.") @Valid @RequestParam(value = "complete", required = false) Boolean complete,@ApiParam(value = "Ending date of order to search for, inclusive. If missing, the starting date is used. Format: yyyy-MM-dd ") @Valid @RequestParam(value = "endingDate", required = false) OffsetDateTime endingDate);
+    ResponseEntity<Void> searchByComplete(@NotNull @ApiParam(value = "starting date of the order to search for, inclusive, or the date, if no ending date is specified. Format: yyyy-MM-dd ", required = true) @Valid @RequestParam(value = "startingDate", required = true) OffsetDateTime startingDate, @ApiParam(value = "If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.") @Valid @RequestParam(value = "complete", required = false) Boolean complete, @ApiParam(value = "Ending date of order to search for, inclusive. If missing, the starting date is used. Format: yyyy-MM-dd ") @Valid @RequestParam(value = "endingDate", required = false) OffsetDateTime endingDate);
 
 
     @ApiOperation(value = "search for an order by id", nickname = "searchForOrder", notes = "Retrieve an order by its ID. ", tags={  })
@@ -74,7 +74,7 @@ public interface OrderApi {
     @RequestMapping(value = "/order/{id}",
         produces = { "applicaton/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Void> searchForOrder(@ApiParam(value = "id of the order to search for",required=true) @PathVariable("id") String id);
+    ResponseEntity<Void> searchForOrder(@ApiParam(value = "id of the order to search for", required = true) @PathVariable("id") String id);
 
 
     @ApiOperation(value = "Update an order", nickname = "updateOrder", notes = "Update an order for a MenuItem, with a list of MenuItemOptions. ", tags={  })
@@ -84,6 +84,6 @@ public interface OrderApi {
     @RequestMapping(value = "/order",
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    ResponseEntity<Void> updateOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody CustomerOrderDto order);
+    ResponseEntity<Void> updateOrder(@ApiParam(value = "The contents of the order", required = true) @Valid @RequestBody CustomerOrderDto order);
 
 }

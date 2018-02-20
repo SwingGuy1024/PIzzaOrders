@@ -5,22 +5,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.model.FoodOptionDto;
 import io.swagger.model.MenuItemDto;
 import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 
 /**
- * Links a FoodOption to a MenuItem
+ * Option for a MenuItem
  */
-@ApiModel(description = "Links a FoodOption to a MenuItem")
+@ApiModel(description = "Option for a MenuItem")
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T09:31:20.427Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T19:52:41.440Z")
 
 public class MenuItemOptionDto   {
-  @JsonProperty("foodOption")
-  private FoodOptionDto foodOption = null;
+  @JsonProperty("name")
+  private String name = null;
 
   @JsonProperty("menuItem")
   private MenuItemDto menuItem = null;
@@ -31,25 +30,24 @@ public class MenuItemOptionDto   {
   @JsonProperty("id")
   private Integer id = null;
 
-  public MenuItemOptionDto foodOption(FoodOptionDto foodOption) {
-    this.foodOption = foodOption;
+  public MenuItemOptionDto name(String name) {
+    this.name = name;
     return this;
   }
 
    /**
-   * Get foodOption
-   * @return foodOption
+   * Get name
+   * @return name
   **/
   @ApiModelProperty(value = "")
 
-  @Valid
 
-  public FoodOptionDto getFoodOption() {
-    return foodOption;
+  public String getName() {
+    return name;
   }
 
-  public void setFoodOption(FoodOptionDto foodOption) {
-    this.foodOption = foodOption;
+  public void setName(String name) {
+    this.name = name;
   }
 
   public MenuItemOptionDto menuItem(MenuItemDto menuItem) {
@@ -123,7 +121,7 @@ public class MenuItemOptionDto   {
       return false;
     }
     MenuItemOptionDto menuItemOptionDto = (MenuItemOptionDto) o;
-    return Objects.equals(this.foodOption, menuItemOptionDto.foodOption) &&
+    return Objects.equals(this.name, menuItemOptionDto.name) &&
         Objects.equals(this.menuItem, menuItemOptionDto.menuItem) &&
         Objects.equals(this.deltaPrice, menuItemOptionDto.deltaPrice) &&
         Objects.equals(this.id, menuItemOptionDto.id);
@@ -131,7 +129,7 @@ public class MenuItemOptionDto   {
 
   @Override
   public int hashCode() {
-    return Objects.hash(foodOption, menuItem, deltaPrice, id);
+    return Objects.hash(name, menuItem, deltaPrice, id);
   }
 
   @Override
@@ -139,7 +137,7 @@ public class MenuItemOptionDto   {
     StringBuilder sb = new StringBuilder();
     sb.append("class MenuItemOptionDto {\n");
     
-    sb.append("    foodOption: ").append(toIndentedString(foodOption)).append("\n");
+    sb.append("    name: ").append(toIndentedString(name)).append("\n");
     sb.append("    menuItem: ").append(toIndentedString(menuItem)).append("\n");
     sb.append("    deltaPrice: ").append(toIndentedString(deltaPrice)).append("\n");
     sb.append("    id: ").append(toIndentedString(id)).append("\n");

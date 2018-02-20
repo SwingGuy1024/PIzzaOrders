@@ -66,15 +66,31 @@ public enum PojoUtility {
   }
 
   /**
+   * Converts the String Id value to a Integer, throwing an exception if it can't.
+   *
+   * @param id The id as a String
+   * @return the id as a Integer value
+   * @throws ResponseException if id is null or is not readable as a long value, throws a Bad Request response.
+   */
+  public static Integer decodeIdString(final String id) throws ResponseException {
+    try {
+      @SuppressWarnings("argument.type.incompatible") final Integer longValue = Integer.valueOf(id);
+      return longValue; // throws NumberFormatException on null
+    } catch (NumberFormatException e) {
+      throw ResponseException.unreadableId(id, e);
+    }
+  }
+
+  /**
    * Converts the String Id value to a Long, throwing an exception if it can't.
+   *
    * @param id The id as a String
    * @return the id as a Long value
    * @throws ResponseException if id is null or is not readable as a long value, throws a Bad Request response.
    */
-  public static Long decodeIdString(final String id) throws ResponseException {
+  public static Long decodeLongIdString(final String id) throws ResponseException {
     try {
-      @SuppressWarnings("argument.type.incompatible")
-      final Long longValue = Long.valueOf(id);
+      @SuppressWarnings("argument.type.incompatible") final Long longValue = Long.valueOf(id);
       return longValue; // throws NumberFormatException on null
     } catch (NumberFormatException e) {
       throw ResponseException.unreadableId(id, e);

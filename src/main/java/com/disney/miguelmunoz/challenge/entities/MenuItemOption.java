@@ -6,7 +6,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 
 /**
  * <p>Created by IntelliJ IDEA.
@@ -20,7 +19,7 @@ public class MenuItemOption {
   private Integer id;
   private MenuItem menuItem;
   private BigDecimal deltaPrice;
-  private FoodOption foodOption;
+  private String name;
 
   @Id
   @GeneratedValue
@@ -50,14 +49,12 @@ public class MenuItemOption {
     this.deltaPrice = deltaPrice;
   }
 
-  @OneToOne
-  @JoinColumn(name="food_option_id")
-  public FoodOption getFoodOption() {
-    return foodOption;
+  public String getName() {
+    return name;
   }
 
-  public void setFoodOption(final FoodOption foodOption) {
-    this.foodOption = foodOption;
+  public void setName(final String name) {
+    this.name = name;
   }
 
   @Override

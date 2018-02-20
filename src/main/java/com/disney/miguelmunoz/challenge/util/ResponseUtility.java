@@ -39,6 +39,4 @@ public enum ResponseUtility {
   private static String createMessage(ResponseException ex) {
     return String.format("{\"message\": \"%s\", \"httpStatus\": \"%s\"}", ex.getMessage(), ex.getHttpStatus());
   }
-
-
 }
