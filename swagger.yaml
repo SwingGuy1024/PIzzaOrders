@@ -1,0 +1,253 @@
+swagger: '2.0'
+info:
+  description: System to keep track of food orders
+  version: 1.0.0
+  title: Food Orders API
+  contact:
+    email: SwingGuy1024@yahoo.com 
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+paths:
+  /foodOption:
+    put:
+      summary: And a food option to the enumeration of options
+      description: |
+        Add a food option to the enumeration of options. In a complete system, this would contain APIs to update, search, and delete, but for this demo, add will do.
+        A Food Option is an option that may conceivably be added to many different menu items, such as olives, which could be added to a pizza or a submarine sandwich. It consists of nothing but a name, so the foodOption table is essentially a modifiable enumeration. These are referred to in the MenuItemOption table.
+      operationId: addFoodOption
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: name
+        description: View text of the Food option
+        required: true
+        type: string
+      responses:
+        201:
+          description: Food Option Created
+        400:
+          description: Bad Request
+  /menuItem:
+    put:
+      summary: Add a MenuItem, with MenuItemOptions.
+      description: |
+        Add a MenuItem, complete with MenuItemOptions, to the database. In a complete system, this would also contain APIs to update, search, and delete MenuItems, but for this demo, this will do.
+        A MenuItem is a FoodOption that has been added to a specific MenuItem.
+      operationId: addMenuItem
+      parameters: 
+      - in: body
+        name: menuItem
+        description: Complete menu item, with MenuItemOptions
+        required: true
+        schema:
+          $ref: '#/definitions/MenuItemDto'
+      consumes:
+      - application/json
+      responses:
+        201:
+          description: Menu Item Created
+        400:
+          description: Bad Request
+  /order:
+    put:
+      summary: Place an order
+      description: |
+        Place an order for a MenuItem, with a list of MenuItemOptions.
+      operationId: addOrder
+      consumes:
+      - application/json
+      parameters:
+      - in: body
+        name: order
+        description: The contents of the order
+        schema:
+          $ref: '#/definitions/FoodOrderDto'
+        required: true
+      responses:
+        201:
+          description: Order Placed
+        400:
+          description: Bad Request
+    post:
+      summary: Update an order
+      description: |
+        Update an order for a MenuItem, with a list of MenuItemOptions.
+      operationId: updateOrder
+      consumes:
+      - application/json
+      parameters:
+      - in: body
+        name: order
+        description: The contents of the order
+        required: true
+        schema:
+          $ref: '#/definitions/FoodOrderDto'
+      responses:
+        202:
+          description: Order Updated
+        400:
+          description: Bad Request
+  /order/complete/{id}:
+    post:
+      summary: Mark an order completed
+      description: |
+        Mark an order complete.
+      operationId: completeOrder
+      parameters:
+      - in: path
+        name: id
+        description: The id of the completed order
+        required: true
+        type: string
+      responses:
+        202:
+          description: Order Completed
+        400:
+          description: Bad Request
+  /order/{id}:
+    get:
+      summary: search for an order by id
+      description: |
+        Retrieve an order by its ID.
+      operationId: searchForOrder
+      produces:
+      - applicaton/json
+      parameters:
+      - in: path
+        name: id
+        description: id of the order to search for
+        required: true
+        type: string
+      responses:
+        302:
+          description: search results found
+        404:
+          description: Not found
+        400:
+          description: bad request
+    delete:
+      summary: delete an order
+      description: |
+        Update an order for a MenuItem, with a list of MenuItemOptions.
+      operationId: deleteOrder
+      parameters:
+      - in: path
+        name: id
+        description: The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.
+        required: true
+        type: string
+      responses:
+        202:
+          description: Order Updated
+        400:
+          description: Bad Request
+  /order/search:
+    get:
+      summary: search for an order by completed status and date range
+      description: |
+        Retrieve an order by its completed status, with a date range. Returns an array of items
+      operationId: searchByComplete
+      produces:
+      - applicaton/json
+      parameters:
+      - in: query
+        name: startingDate
+        description: |
+          starting date of the order to search for, inclusive, or the date, if no ending date is specified. Format: yyyy-MM-dd
+        required: true
+        type: string
+        format: date-time
+      - in: query
+        name: complete
+        type: boolean
+        required: false
+        description: If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.
+      - in: query
+        name: endingDate
+        description: |
+          Ending date of order to search for, inclusive. If missing, the starting date is used. Format: yyyy-MM-dd
+        type: string
+        format: date-time
+        required: false
+      responses:
+        302:
+          description: search results found
+        404:
+          description: Not found
+        400:
+          description: bad request
+definitions:
+  FoodOptionDto:
+    properties:
+      option:
+        type: string
+        description: Option for food, such as no cheese or pepperoni. The table is just a modifieable enumeration.
+      id:
+        type: integer
+        format: int32
+    required:
+    - option
+    - id
+  MenuItemOptionDto:
+    type: object
+    description: Links a FoodOption to a MenuItem
+    properties:
+      foodOption:
+        $ref: '#/definitions/FoodOptionDto'
+      menuItem:
+        type: object
+        $ref: '#/definitions/MenuItemDto'
+      deltaPrice:
+        type: string
+        description: floating point price. Strings are easier to work with.
+      id:
+        type: integer
+        format: int32
+  MenuItemDto:
+    type: object
+    properties:
+      name:
+        type: string
+      itemPrice:
+        type: string
+        description: floating point price. Strings are easier to work with.
+      allowedOptions:
+        type: array
+        items:
+          $ref: '#/definitions/MenuItemOptionDto'
+      id:
+        type: integer
+        format: int32
+  FoodOrderDto:
+    properties:
+      menuItem:
+        type: object
+        $ref: '#/definitions/MenuItemDto'
+      options:
+        type: array
+        items:
+          $ref: '#/definitions/MenuItemOptionDto'
+      complete:
+        type: boolean
+        description: Order complete
+      finalPrice:
+        type: string
+        description: floating point price. Strings are easier to work with.
+      id:
+        type: integer
+        format: int32
+      orderTime:
+        type: string
+        format: date-time
+      completeTime:
+        type: string
+        format: date-time
+# Added by API Auto Mocking Plugin
+host: virtserver.swaggerhub.com
+schemes:
+ - https
+ - http
+# Added by API Auto Mocking Plugin
+basePath: /NeptuneDreams/FoodOrders/1.0.0
