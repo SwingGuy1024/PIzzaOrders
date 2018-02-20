@@ -1,7 +1,7 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.sql.Date;
 import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.Entity;
@@ -10,6 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+
+import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 
 /**
  * <p>Created by IntelliJ IDEA.
@@ -72,19 +74,19 @@ public class CustomerOrder {
   }
 
   public Date getOrderTime() {
-    return PojoUtility.cloneDate(orderTime);
+    return cloneDate(orderTime);
   }
 
   public void setOrderTime(final Date orderTime) {
-    this.orderTime = orderTime;
+    this.orderTime = cloneDate(orderTime);
   }
 
   public Date getCompleteTime() {
-    return completeTime;
+    return cloneDate(completeTime);
   }
 
   public void setCompleteTime(final Date completeTime) {
-    this.completeTime = completeTime;
+    this.completeTime = cloneDate(completeTime);
   }
 
   @Override
@@ -95,7 +97,8 @@ public class CustomerOrder {
 
     final CustomerOrder customerOrder = (CustomerOrder) o;
 
-    return (getId() != null) ? getId().equals(customerOrder.getId()) : (customerOrder.getId() == null);
+    final Integer theId = getId();
+    return (theId != null) ? theId.equals(customerOrder.getId()) : (customerOrder.getId() == null);
   }
 
   @Override

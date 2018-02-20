@@ -1,12 +1,12 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -33,14 +33,14 @@ public enum PojoUtility {
   private static final DateFormat timeFormat = new SimpleDateFormat(TIME_FORMAT, Locale.UK);
 
   /**
-   * Clones the date. If the date is null, returns null.
+   * Clones the date. If the date is null, returns null. (Doesn't actually call clone().)
    * @param theDate The date to clone
    * @return A clone of the specified Date.
    */
   public static Date cloneDate(Date theDate) {
     if (theDate != null) {
-      //noinspection UseOfClone
-      return (Date) theDate.clone();
+      // clone() doesn't work on java.sql.Date. This works fine.
+      return new Date(theDate.getTime());
     }
     return null;
   }
