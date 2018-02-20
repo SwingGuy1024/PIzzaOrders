@@ -15,12 +15,12 @@ import javax.validation.Valid;
 import javax.validation.constraints.*;
 
 /**
- * FoodOrderDto
+ * CustomerOrderDto
  */
 @Validated
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T09:31:20.427Z")
 
-public class FoodOrderDto   {
+public class CustomerOrderDto {
   @JsonProperty("menuItem")
   private MenuItemDto menuItem = null;
 
@@ -43,7 +43,7 @@ public class FoodOrderDto   {
   @JsonProperty("completeTime")
   private OffsetDateTime completeTime = null;
 
-  public FoodOrderDto menuItem(MenuItemDto menuItem) {
+  public CustomerOrderDto menuItem(MenuItemDto menuItem) {
     this.menuItem = menuItem;
     return this;
   }
@@ -64,12 +64,12 @@ public class FoodOrderDto   {
     this.menuItem = menuItem;
   }
 
-  public FoodOrderDto options(List<MenuItemOptionDto> options) {
+  public CustomerOrderDto options(List<MenuItemOptionDto> options) {
     this.options = options;
     return this;
   }
 
-  public FoodOrderDto addOptionsItem(MenuItemOptionDto optionsItem) {
+  public CustomerOrderDto addOptionsItem(MenuItemOptionDto optionsItem) {
     if (this.options == null) {
       this.options = new ArrayList<MenuItemOptionDto>();
     }
@@ -93,7 +93,7 @@ public class FoodOrderDto   {
     this.options = options;
   }
 
-  public FoodOrderDto complete(Boolean complete) {
+  public CustomerOrderDto complete(Boolean complete) {
     this.complete = complete;
     return this;
   }
@@ -113,7 +113,7 @@ public class FoodOrderDto   {
     this.complete = complete;
   }
 
-  public FoodOrderDto finalPrice(String finalPrice) {
+  public CustomerOrderDto finalPrice(String finalPrice) {
     this.finalPrice = finalPrice;
     return this;
   }
@@ -133,7 +133,7 @@ public class FoodOrderDto   {
     this.finalPrice = finalPrice;
   }
 
-  public FoodOrderDto id(Integer id) {
+  public CustomerOrderDto id(Integer id) {
     this.id = id;
     return this;
   }
@@ -153,7 +153,7 @@ public class FoodOrderDto   {
     this.id = id;
   }
 
-  public FoodOrderDto orderTime(OffsetDateTime orderTime) {
+  public CustomerOrderDto orderTime(OffsetDateTime orderTime) {
     this.orderTime = orderTime;
     return this;
   }
@@ -174,7 +174,7 @@ public class FoodOrderDto   {
     this.orderTime = orderTime;
   }
 
-  public FoodOrderDto completeTime(OffsetDateTime completeTime) {
+  public CustomerOrderDto completeTime(OffsetDateTime completeTime) {
     this.completeTime = completeTime;
     return this;
   }
@@ -204,14 +204,14 @@ public class FoodOrderDto   {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    FoodOrderDto foodOrderDto = (FoodOrderDto) o;
-    return Objects.equals(this.menuItem, foodOrderDto.menuItem) &&
-        Objects.equals(this.options, foodOrderDto.options) &&
-        Objects.equals(this.complete, foodOrderDto.complete) &&
-        Objects.equals(this.finalPrice, foodOrderDto.finalPrice) &&
-        Objects.equals(this.id, foodOrderDto.id) &&
-        Objects.equals(this.orderTime, foodOrderDto.orderTime) &&
-        Objects.equals(this.completeTime, foodOrderDto.completeTime);
+    CustomerOrderDto customerOrderDto = (CustomerOrderDto) o;
+    return Objects.equals(this.menuItem, customerOrderDto.menuItem) &&
+        Objects.equals(this.options, customerOrderDto.options) &&
+        Objects.equals(this.complete, customerOrderDto.complete) &&
+        Objects.equals(this.finalPrice, customerOrderDto.finalPrice) &&
+        Objects.equals(this.id, customerOrderDto.id) &&
+        Objects.equals(this.orderTime, customerOrderDto.orderTime) &&
+        Objects.equals(this.completeTime, customerOrderDto.completeTime);
   }
 
   @Override
@@ -222,7 +222,7 @@ public class FoodOrderDto   {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class FoodOrderDto {\n");
+    sb.append("class CustomerOrderDto {\n");
     
     sb.append("    menuItem: ").append(toIndentedString(menuItem)).append("\n");
     sb.append("    options: ").append(toIndentedString(options)).append("\n");

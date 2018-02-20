@@ -10,7 +10,6 @@ import com.disney.miguelmunoz.challenge.entities.FoodOption;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.Swagger2SpringBoot;
 import io.swagger.model.FoodOptionDto;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
@@ -89,7 +88,7 @@ public class MenuItemApiControllerTest {
     String body = responseEntity.getBody();
     if (body.startsWith("id=")) {
       int id = Integer.valueOf(body.substring(3));
-      MenuItem item = menuItemApiController.getMenuItem(id);
+      MenuItem item = menuItemApiController.getMenuItemTestOnly(id);
       assertEquals("0.50", item.getItemPrice().toString());
       assertEquals("GoodItem", item.getName());
       Set<String> foodOptionSet = new HashSet<>();

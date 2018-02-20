@@ -63,7 +63,7 @@ paths:
         name: order
         description: The contents of the order
         schema:
-          $ref: '#/definitions/FoodOrderDto'
+          $ref: '#/definitions/CustomerOrderDto'
         required: true
       responses:
         201:
@@ -83,7 +83,7 @@ paths:
         description: The contents of the order
         required: true
         schema:
-          $ref: '#/definitions/FoodOrderDto'
+          $ref: '#/definitions/CustomerOrderDto'
       responses:
         202:
           description: Order Updated
@@ -220,7 +220,7 @@ definitions:
       id:
         type: integer
         format: int32
-  FoodOrderDto:
+  CustomerOrderDto:
     properties:
       menuItem:
         type: object
@@ -250,4 +250,4 @@ schemes:
  - https
  - http
 # Added by API Auto Mocking Plugin
-basePath: /NeptuneDreams/FoodOrders/1.0.0
+basePath: /NeptuneDreams/CustomerOrders/1.0.0

@@ -1,7 +1,7 @@
 package io.swagger.api;
 
+import java.util.List;
 import com.disney.miguelmunoz.challenge.entities.FoodOption;
-import com.disney.miguelmunoz.challenge.entities.PojoUtility;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.FoodOptionRepository;
 import com.disney.miguelmunoz.challenge.util.ResponseUtility;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.constraints.*;
 import javax.validation.Valid;
-import javax.servlet.http.HttpServletRequest;
 
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 
@@ -49,4 +48,9 @@ public class FoodOptionApiController implements FoodOptionApi {
     }
   }
 
+  ////// For unit tests //////
+
+  List<FoodOption> getAllTestOnly() {
+    return foodOptionRepository.findAll();
+  }
 }

@@ -1,6 +1,7 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 /**
@@ -16,6 +17,7 @@ public class FoodOption {
   private String name;
 
   @Id
+  @GeneratedValue
   public Integer getId() {
     return id;
   }

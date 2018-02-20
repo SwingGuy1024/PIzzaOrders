@@ -96,7 +96,7 @@ public class MenuItemApiController implements MenuItemApi {
 
   ////// For unit tests //////
   
-  MenuItem getMenuItem(int id) {
+  MenuItem getMenuItemTestOnly(int id) {
     return menuItemRepository.getOne(id);
   }
 }

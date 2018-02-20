@@ -5,7 +5,7 @@
  */
 package io.swagger.api;
 
-import io.swagger.model.FoodOrderDto;
+import io.swagger.model.CustomerOrderDto;
 import org.threeten.bp.OffsetDateTime;
 import io.swagger.annotations.*;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +34,7 @@ public interface OrderApi {
     @RequestMapping(value = "/order",
         consumes = { "application/json" },
         method = RequestMethod.PUT)
-    ResponseEntity<Void> addOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody FoodOrderDto order);
+    ResponseEntity<Void> addOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody CustomerOrderDto order);
 
 
     @ApiOperation(value = "Mark an order completed", nickname = "completeOrder", notes = "Mark an order complete. ", tags={  })
@@ -84,6 +84,6 @@ public interface OrderApi {
     @RequestMapping(value = "/order",
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    ResponseEntity<Void> updateOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody FoodOrderDto order);
+    ResponseEntity<Void> updateOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody CustomerOrderDto order);
 
 }

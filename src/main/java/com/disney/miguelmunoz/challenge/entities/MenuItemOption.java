@@ -2,6 +2,7 @@ package com.disney.miguelmunoz.challenge.entities;
 
 import java.math.BigDecimal;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -22,6 +23,7 @@ public class MenuItemOption {
   private FoodOption foodOption;
 
   @Id
+  @GeneratedValue
   public Integer getId() {
     return id;
   }

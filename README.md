@@ -13,24 +13,34 @@ The underlying library integrating swagger to SpringBoot is [springfox](https://
 Start your server as an simple java application  
 
 You can view the api documentation in swagger-ui by pointing to 
-http://localhost:8080/NeptuneDreams/FoodOrders/1.0.0/swagger-ui.html 
+http://localhost:8080/NeptuneDreams/CustomerOrders/1.0.0/swagger-ui.html 
 
 Change default port value in application.properties
 
 ## JPA Entities
 
-### FoodOption
+### 1. FoodOption
 This table is a simple editable enumeration of possible options. Each option
 is available for multiple menu items. For example, olives could go on a pizza or a submarine sandwich.
 
-### MenuItemOption
+### 2. MenuItemOption
 A MenuItemOption links a MenuItem (below) to a Food Option. It also has a delta price, which is the amount the price changes if the guest chooses this option.
 
-### MenuItem
+### 3. MenuItem
 A MenuItem consists of a name, price, and list of MenuItemOptions. The list consists of all possible options for this menu item. MenuItem has a One-to-Many relationship with MenuItemOption.
 
-### FoodOrder
-A Food order is an actual order. It has a final price, a boolean to record when it has been completed and delivered, and an order date and completion date, and a list of MenuItemOptions. Unlike the MenuItem, the list of options is all the chosen options, rather than the available options. Also, unlike MenuItem, the FoodOrder has a Many-To-Many relationship with MenuItemOption.
+### 4. CustomerOrder
+A Food order is an actual order. It has a final price, a boolean to record when it has been completed and delivered, and an order date and completion date, and a list of MenuItemOptions. Unlike the MenuItem, the list of options is all the chosen options, rather than the available options. Also, unlike MenuItem, the CustomerOrder has a Many-To-Many relationship with MenuItemOption.
 
-### Money values
+### Money
 Monetary values are expressed as Strings in the DTOs, because the toolkit I'm using (swagger) converts floats and doubles to java's Float and Double type, instead of BigDecimal. Using Strings lets me convert them to BigDecimal in a reliable way.
+
+## Database
+I use an embedded h2 database. This is great for demo purposes, because you don't need to launch a server, and it's a java database, so it runs with very little configuration.
+
+## Testing
+The testing application properties specify a memory database, so changes get wiped out from test to test. This greatly facilitates testing.
+
+## Generated classes
+Swagger generates interfaces and classes for the controllers. Whenever I need to regenerate the controller classes, I only copy the interfaces. Since they are generated, I have a strong presumption of making any changes, but there are still cases where I'm not happy with the generated APIs, and working around them is way too much work. So I have made changes to some of them. The problem is that, except for GET operations, the controller methods return a response of type ResponseEntity<Void>. Because of the Void content type, I have no way to return the id of the newly generated value. So I change the response type to ResponseEntity<String>. I wish I didn't have to do this, but it's a pretty small change, so it's managable.
+

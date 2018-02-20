@@ -1,6 +1,6 @@
 package io.swagger.api;
 
-import io.swagger.model.FoodOrderDto;
+import io.swagger.model.CustomerOrderDto;
 import org.threeten.bp.OffsetDateTime;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
@@ -38,7 +38,7 @@ public class OrderApiController implements OrderApi {
         this.request = request;
     }
 
-    public ResponseEntity<Void> addOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody FoodOrderDto order) {
+    public ResponseEntity<Void> addOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody CustomerOrderDto order) {
         String accept = request.getHeader("Accept");
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
@@ -63,7 +63,7 @@ public class OrderApiController implements OrderApi {
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<Void> updateOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody FoodOrderDto order) {
+    public ResponseEntity<Void> updateOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody CustomerOrderDto order) {
         String accept = request.getHeader("Accept");
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
