@@ -1,18 +1,24 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Collection;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 
@@ -26,7 +32,7 @@ import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 @Entity
 public class CustomerOrder {
   private Integer id;
-  private List<MenuItemOption> options = new LinkedList<>();
+  private Collection<MenuItemOption> options = new LinkedList<>();
   private Boolean complete = Boolean.FALSE;
   private Date orderTime;
   private Date completeTime;
@@ -42,17 +48,21 @@ public class CustomerOrder {
     this.id = id;
   }
 
-  @ManyToMany
+  // This is annotated with @Fetch to prevent error messages that say this: 
+  // "org.hibernate.loader.MultipleBagFetchException: cannot simultaneously fetch multiple bags"
+  // See https://stackoverflow.com/questions/4334970/hibernate-cannot-simultaneously-fetch-multiple-bags
+  @Fetch(value = FetchMode.SUBSELECT)
+  @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
   @JoinTable(
       name = "food_order_to_menu_item_option", 
       joinColumns = @JoinColumn(name = "food_order_id"), 
       inverseJoinColumns = @JoinColumn(name = "menu_item_option_id")
   )
-  public List<MenuItemOption> getOptions() {
+  public Collection<MenuItemOption> getOptions() {
     return options;
   }
 
-  public void setOptions(final List<MenuItemOption> options) {
+  public void setOptions(final Collection<MenuItemOption> options) {
     if (options == null) {
       this.options = new LinkedList<>();
     } else {
@@ -81,6 +91,8 @@ public class CustomerOrder {
 //    this.finalPrice = finalPrice;
 //  }
 //
+
+  @Temporal(TemporalType.TIMESTAMP)
   public Date getOrderTime() {
     return cloneDate(orderTime);
   }
@@ -89,6 +101,7 @@ public class CustomerOrder {
     this.orderTime = cloneDate(orderTime);  
   }
 
+  @Temporal(TemporalType.TIMESTAMP)
   public Date getCompleteTime() {
     return cloneDate(completeTime);
   }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import com.disney.miguelmunoz.challenge.entities.PojoUtility;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -16,7 +17,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
  * @author Miguel Mu\u00f1oz
  */
 public class JsonDateDeserializer extends JsonDeserializer<Date> {
-  private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+  private static final SimpleDateFormat dateFormat = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
 //  private static final SimpleDateFormat dateFormat = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
 
   /**

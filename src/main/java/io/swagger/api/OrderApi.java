@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:33:56.667Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:52:21.167Z")
 
 @Api(value = "order", description = "the order API")
 public interface OrderApi {
@@ -70,15 +70,15 @@ public interface OrderApi {
     ResponseEntity<CreatedResponse> searchByComplete(@NotNull @ApiParam(value = "starting date of the order to search for, inclusive, or the date, if no ending date is specified. Format: yyyy-MM-dd ", required = true) @Valid @RequestParam(value = "startingDate", required = true) OffsetDateTime startingDate, @ApiParam(value = "If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.") @Valid @RequestParam(value = "complete", required = false) Boolean complete, @ApiParam(value = "Ending date of order to search for, inclusive. If missing, the starting date is used. Format: yyyy-MM-dd ") @Valid @RequestParam(value = "endingDate", required = false) OffsetDateTime endingDate);
 
 
-    @ApiOperation(value = "search for an order by id", nickname = "searchForOrder", notes = "Retrieve an order by its ID. ", response = CreatedResponse.class, tags={  })
+    @ApiOperation(value = "search for an order by id", nickname = "searchForOrder", notes = "Retrieve an order by its ID. ", response = CustomerOrderDto.class, tags={  })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "search results found", response = CreatedResponse.class),
-        @ApiResponse(code = 400, message = "bad request", response = CreatedResponse.class),
-        @ApiResponse(code = 404, message = "Not found", response = CreatedResponse.class) })
+        @ApiResponse(code = 200, message = "search results found", response = CustomerOrderDto.class),
+        @ApiResponse(code = 400, message = "bad request"),
+        @ApiResponse(code = 404, message = "Not found") })
     @RequestMapping(value = "/order/{id}",
         produces = { "applicaton/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<CreatedResponse> searchForOrder(@ApiParam(value = "id of the order to search for", required = true) @PathVariable("id") String id);
+    ResponseEntity<CustomerOrderDto> searchForOrder(@ApiParam(value = "id of the order to search for", required = true) @PathVariable("id") String id);
 
 
     @ApiOperation(value = "Update an order", nickname = "updateOrder", notes = "Update an order for a MenuItem, with a list of MenuItemOptions. ", response = CreatedResponse.class, tags={  })

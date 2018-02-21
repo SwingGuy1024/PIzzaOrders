@@ -1,8 +1,10 @@
 package io.swagger.api;
 
-import java.sql.Date;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
+import com.disney.miguelmunoz.challenge.entities.PojoUtility;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
@@ -46,8 +48,10 @@ public class OrderApiController implements OrderApi {
       confirmNull(orderEntity.getCompleteTime());
       confirmNotNull(orderEntity.getMenuItem());
       confirmEqual(Boolean.FALSE, orderEntity.getComplete());
-      
+
       orderEntity.setOrderTime(new Date(System.currentTimeMillis()));
+      final Date orderTime = orderEntity.getOrderTime();
+      log.debug("Pojo set order time: {} = {}", orderTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(orderTime));
       CustomerOrder savedOrder = customerOrderRepository.save(orderEntity);
       return makeCreatedResponseWithId(savedOrder.getId().toString());
     } catch (Exception e) {
@@ -56,21 +60,25 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  public ResponseEntity<Void> completeOrder(final String id) {
+  public ResponseEntity<CreatedResponse> completeOrder(final String id) {
     try {
       CustomerOrder order = customerOrderRepository.findOne(decodeIdString(id));
       confirmNotNull(order);
-      confirmEqual("Already Complete", Boolean.FALSE, order.getComplete());
-      order.setComplete(true);
-      order.setCompleteTime(new Date(System.currentTimeMillis()));
+      confirmEqual("Already Complete", Boolean.FALSE, order.getComplete()); // Test searches for this String.
+      order.setComplete(Boolean.TRUE);
+      final Date completeTime = new Date(System.currentTimeMillis());
+      log.debug("Pojo Complete Time: {} = {}", completeTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(completeTime));
+      order.setCompleteTime(completeTime);
+      Date cTime = order.getCompleteTime();
+      log.debug("Pojo Complete Time: {} = {}", cTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(cTime));
       return new ResponseEntity<>(HttpStatus.ACCEPTED);
     } catch (Exception e) {
-      return makeVoidResponse(e);
+      return makeErrorResponse(e);
     }
   }
 
   @Override
-  public ResponseEntity<Void> deleteOrder(final String id) {
+  public ResponseEntity<CreatedResponse> deleteOrder(final String id) {
     return null;
   }
 
@@ -80,17 +88,28 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  public ResponseEntity<CreatedResponse> searchForOrder(final String id) {
+  public ResponseEntity<CustomerOrderDto> searchForOrder(final String id) {
     try {
       CustomerOrder order = customerOrderRepository.findOne(decodeIdString(id));
-      return makeStatusResponse(HttpStatus.FOUND, id);
+      SimpleDateFormat format = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
+      final Date orderTime = order.getOrderTime();
+      if (orderTime != null) {
+        log.info("Pojo Order time: {} = {}", orderTime, format.format(orderTime));
+      }
+      final Date completeTime = order.getCompleteTime();
+      if (completeTime != null) {
+        log.info("Pojo Compl time: {} = {}", completeTime, format.format(completeTime));
+      }
+      CustomerOrderDto dto = objectMapper.convertValue(order, CustomerOrderDto.class);
+      return new ResponseEntity<>(dto, HttpStatus.OK);
     } catch (Exception e) {
-      return makeErrorResponse(e);
+      log.debug(HttpStatus.BAD_REQUEST.toString(), e);
+      return new ResponseEntity<>((CustomerOrderDto) null, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Override
-  public ResponseEntity<Void> updateOrder(final CustomerOrderDto order) {
+  public ResponseEntity<CreatedResponse> updateOrder(final CustomerOrderDto order) {
     return null;
   }
 

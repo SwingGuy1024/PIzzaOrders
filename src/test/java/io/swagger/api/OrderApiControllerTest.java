@@ -15,6 +15,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -40,6 +42,7 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest(classes = Application.class)
 @Component
 public class OrderApiControllerTest {
+  private static final Logger log = LoggerFactory.getLogger(OrderApiControllerTest.class);
   
   @Autowired
   private MenuItemApiController menuItemApiController;
@@ -87,12 +90,30 @@ public class OrderApiControllerTest {
     assertEquals(Boolean.FALSE, order.getComplete());
     
     // Test of CompleteOrder
-    
-    ResponseEntity<Void> voidResponse = orderApiController.completeOrder("10000");
-    assertBad(voidResponse);
 
-    voidResponse = orderApiController.completeOrder(idString);
-    String body = orderApiController.searchForOrder(idString).getBody();
+    // Test bad input (not found)    
+    ResponseEntity<CreatedResponse> createResponse = orderApiController.completeOrder("10000");
+    assertBad(createResponse);
+
+    log.info("Completing order with id = {}", idString);
+    createResponse = orderApiController.completeOrder(idString);
+    assertEquals(HttpStatus.ACCEPTED, createResponse.getStatusCode());
+    CustomerOrderDto body = orderApiController.searchForOrder(idString).getBody();
+    log.info("DTO Order time: {}", body.getOrderTime());
+    log.info("Dto Compl time: {}", body.getCompleteTime());
+    assertNotNull(String.format("Not found at id %s", idString), body);
+    log.info("Found DTO order with id = {}", body.getId());
+    log.info("OrderDto: \n{}", body.toString());
+//    assertEquals(Boolean.TRUE, body.isComplete()); // Doesn't work yet.
+//    OffsetDateTime completeTime = body.getCompleteTime();
+//    GregorianCalendar now = new GregorianCalendar();
+//    assertThat(completeTime.getDayOfMonth() + 1, greaterThanOrEqualTo(now.get(GregorianCalendar.DAY_OF_MONTH)));
+    
+//    // test of already complete
+//    createResponse = orderApiController.completeOrder(idString);
+//    assertEquals(HttpStatus.BAD_REQUEST, createResponse.getStatusCode());
+//    assertThat(createResponse.getBody().getMessage(), containsString("Already Complete"));
+
   }
   
   private void assertCreated(final ResponseEntity<?> responseEntity) {

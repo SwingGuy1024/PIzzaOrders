@@ -1,7 +1,7 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.io.IOException;
-import java.sql.Date;
+import java.util.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,7 +30,7 @@ public enum PojoUtility {
 
   private static final Logger log = LoggerFactory.getLogger(PojoUtility.class);
   private static final ObjectMapper mapper = new ObjectMapper();
-  public static final String TIME_FORMAT = "yyyy-MM-dd HH-mm-ss";
+  public static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSZ";
   private static final DateFormat timeFormat = new SimpleDateFormat(TIME_FORMAT, Locale.UK);
 
   /**

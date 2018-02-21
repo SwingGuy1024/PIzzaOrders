@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:33:56.667Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:52:21.167Z")
 
 @Api(value = "menuItem", description = "the menuItem API")
 public interface MenuItemApi {
@@ -62,7 +62,7 @@ public interface MenuItemApi {
     @ApiOperation(value = "Gets a menuItem by ID", nickname = "getMenuItem", notes = "", response = MenuItemDto.class, tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Found", response = MenuItemDto.class),
-        @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
+        @ApiResponse(code = 404, message = "NotFound") })
     @RequestMapping(value = "/menuItem/{id}",
         produces = { "application/json" }, 
         method = RequestMethod.GET)

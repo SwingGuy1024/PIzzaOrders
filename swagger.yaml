@@ -197,15 +197,11 @@ paths:
         200:
           description: search results found
           schema:
-            $ref: '#/definitions/CreatedResponse'
+            $ref: '#/definitions/CustomerOrderDto'
         404:
           description: Not found
-          schema:
-            $ref: '#/definitions/CreatedResponse'
         400:
           description: bad request
-          schema:
-            $ref: '#/definitions/CreatedResponse'
     delete:
       summary: delete an order
       description: |
