@@ -71,6 +71,7 @@ public class OrderApiController implements OrderApi {
       order.setCompleteTime(completeTime);
       Date cTime = order.getCompleteTime();
       log.debug("Pojo Complete Time: {} = {}", cTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(cTime));
+      customerOrderRepository.save(order);
       return new ResponseEntity<>(HttpStatus.ACCEPTED);
     } catch (Exception e) {
       return makeErrorResponse(e);

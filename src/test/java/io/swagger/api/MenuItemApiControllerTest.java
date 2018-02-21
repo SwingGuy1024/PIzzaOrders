@@ -135,7 +135,6 @@ public class MenuItemApiControllerTest {
     Integer id = decodeIdString(body.getId());
     
     MenuItem item = menuItemApiController.getMenuItemTestOnly(id);
-    Hibernate.initialize(item.getAllowedOptions());
     List<String> nameList = new LinkedList<>();
     for (MenuItemOption option : item.getAllowedOptions()) {
       nameList.add(option.getName());

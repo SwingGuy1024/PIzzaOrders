@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
  *
  * @author Miguel Mu\u00f1oz
  */
+@SuppressWarnings("UnusedReturnValue")
 public enum PojoUtility {
   ;
 

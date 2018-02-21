@@ -12,14 +12,15 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 public class Application implements CommandLineRunner {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
+		//noinspection resource
 		new SpringApplication(Application.class).run(args);
 //		SpringApplication.run(Application.class, args);
 	}
 
 	@Override
-	public void run(String... arg0) throws Exception {
-		if (arg0.length > 0 && arg0[0].equals("exitcode")) {
+	public void run(String... arg0) {
+		if ((arg0.length > 0) && "exitcode".equals(arg0[0])) {
 			throw new ExitException();
 		}
 	}

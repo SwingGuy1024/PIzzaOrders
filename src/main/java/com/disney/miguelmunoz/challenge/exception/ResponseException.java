@@ -23,6 +23,7 @@ public class ResponseException extends Exception {
     httpStatus = status;
   }
 
+  @SuppressWarnings("WeakerAccess")
   public ResponseException(HttpStatus status, String message, Throwable cause) {
     super(message, cause);
     httpStatus = status;

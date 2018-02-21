@@ -25,7 +25,7 @@ public enum ResponseUtility {
       return new ResponseEntity<>(httpStatus);
     }
     log.debug(t.getMessage(), t);
-    return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
   }
   
   public static ResponseEntity<CreatedResponse> makeErrorResponse(Throwable t) {

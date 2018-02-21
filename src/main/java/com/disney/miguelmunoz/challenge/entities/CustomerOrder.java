@@ -29,6 +29,7 @@ import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
  *
  * @author Miguel Mu\u00f1oz
  */
+@SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
 @Entity
 public class CustomerOrder {
   private Integer id;
@@ -51,6 +52,7 @@ public class CustomerOrder {
   // This is annotated with @Fetch to prevent error messages that say this: 
   // "org.hibernate.loader.MultipleBagFetchException: cannot simultaneously fetch multiple bags"
   // See https://stackoverflow.com/questions/4334970/hibernate-cannot-simultaneously-fetch-multiple-bags
+  @SuppressWarnings("WeakerAccess")
   @Fetch(value = FetchMode.SUBSELECT)
   @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
   @JoinTable(

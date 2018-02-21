@@ -1,18 +1,12 @@
 package io.swagger.api;
 
-import java.sql.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import com.disney.miguelmunoz.challenge.Application;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
-import com.disney.miguelmunoz.challenge.entities.PojoUtility;
-import com.disney.miguelmunoz.challenge.exception.ResponseException;
-import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
-import com.sun.org.apache.regexp.internal.RE;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
 import io.swagger.model.MenuItemDto;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -27,8 +21,8 @@ import org.threeten.bp.Instant;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZoneId;
 
-import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * <p>Created by IntelliJ IDEA.
@@ -52,7 +46,7 @@ public class OrderApiControllerTest {
   
   
   @Test
-  public void testAddNewOrder() throws ResponseException {
+  public void testAddNewOrder() {
     MenuItemDto pizzaMenuItemDto = MenuItemApiControllerTest.createPizzaMenuItem();
     menuItemApiController.addMenuItem(pizzaMenuItemDto);
     
@@ -104,15 +98,15 @@ public class OrderApiControllerTest {
     assertNotNull(String.format("Not found at id %s", idString), body);
     log.info("Found DTO order with id = {}", body.getId());
     log.info("OrderDto: \n{}", body.toString());
-//    assertEquals(Boolean.TRUE, body.isComplete()); // Doesn't work yet.
-//    OffsetDateTime completeTime = body.getCompleteTime();
-//    GregorianCalendar now = new GregorianCalendar();
-//    assertThat(completeTime.getDayOfMonth() + 1, greaterThanOrEqualTo(now.get(GregorianCalendar.DAY_OF_MONTH)));
+    assertEquals(Boolean.TRUE, body.isComplete()); // Doesn't work yet.
+    OffsetDateTime completeTime = body.getCompleteTime();
+    GregorianCalendar now = new GregorianCalendar();
+    assertThat(completeTime.getDayOfMonth() + 1, greaterThanOrEqualTo(now.get(GregorianCalendar.DAY_OF_MONTH)));
     
-//    // test of already complete
-//    createResponse = orderApiController.completeOrder(idString);
-//    assertEquals(HttpStatus.BAD_REQUEST, createResponse.getStatusCode());
-//    assertThat(createResponse.getBody().getMessage(), containsString("Already Complete"));
+    // test of already complete
+    createResponse = orderApiController.completeOrder(idString);
+    assertEquals(HttpStatus.BAD_REQUEST, createResponse.getStatusCode());
+    assertThat(createResponse.getBody().getMessage(), containsString("Already Complete"));
 
   }
   
