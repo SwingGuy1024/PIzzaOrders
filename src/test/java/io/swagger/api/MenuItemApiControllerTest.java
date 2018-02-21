@@ -1,16 +1,23 @@
 package io.swagger.api;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import com.disney.miguelmunoz.challenge.Application;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
+import com.disney.miguelmunoz.challenge.entities.PojoUtility;
+import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
+import org.hibernate.Hibernate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +37,7 @@ import static org.junit.Assert.*;
  *
  * @author Miguel Mu\u00f1oz
  */
+@SuppressWarnings("CallToNumericToString")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @Component
@@ -41,11 +49,10 @@ public class MenuItemApiControllerTest {
   @Autowired
   private ObjectMapper objectMapper;
   
-//  @Autowired
-//  private MenuItemOptionRepository menuItemOptionRepository;
-
+  // Tests of addMenuItem()
+  
   @Test
-  public void testBadInput() {
+  public void testAddMenuItemBadInput() {
     MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
     menuItemOption.setName("");
     menuItemOption.setDeltaPrice("5.00");
@@ -58,14 +65,10 @@ public class MenuItemApiControllerTest {
     assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
   }
   
-  public void testGoodInput() {
-    MenuItemOptionDto oliveOption = new MenuItemOptionDto();
-    oliveOption.setName("olives");
-    oliveOption.setDeltaPrice("0.30");
-    
-    MenuItemOptionDto pepOption = new MenuItemOptionDto();
-    pepOption.setName("pepperoni");
-    pepOption.setDeltaPrice("0.40");
+  @Test
+  public void testAddMenuItemGoodInput() {
+    MenuItemOptionDto oliveOption = makeMenuItemOptionDto("olives", "0.30");
+    MenuItemOptionDto pepOption = makeMenuItemOptionDto("pepperoni", "0.40");
 
     MenuItemDto menuItemDto = new MenuItemDto();
     menuItemDto.setAllowedOptions(Arrays.asList(oliveOption, pepOption));
@@ -80,7 +83,7 @@ public class MenuItemApiControllerTest {
       assertEquals("0.50", item.getItemPrice().toString());
       assertEquals("GoodItem", item.getName());
       Set<String> foodOptionSet = new HashSet<>();
-      Collection<MenuItemOption> optionList = item.getMenuItemOptionList();
+      Collection<MenuItemOption> optionList = item.getAllowedOptionsList();
       for (MenuItemOption option: optionList) {
         foodOptionSet.add(option.getName());
       }
@@ -88,5 +91,105 @@ public class MenuItemApiControllerTest {
       assertEquals(2, foodOptionSet.size());
     }
     
+  }
+
+  private MenuItemOptionDto makeMenuItemOptionDto(String name, String price) {
+    MenuItemOptionDto oliveOption = new MenuItemOptionDto();
+    oliveOption.setName(name);
+    oliveOption.setDeltaPrice(price);
+    return oliveOption;
+  }
+
+  // Tests of addMenuItemOption()
+  
+  @Test
+  public void testAddOptionBadInput() {
+    isBadRequest(menuItemApiController.addMenuItemOption("5", makeMenuItemOptionDto("olives","X")));
+    isBadRequest(menuItemApiController.addMenuItemOption("5", makeMenuItemOptionDto("olives","0.x0")));
+    isBadRequest(menuItemApiController.addMenuItemOption("5", makeMenuItemOptionDto("olives","1,000.00")));
+    isBadRequest(menuItemApiController.addMenuItemOption("5", makeMenuItemOptionDto("","0.40")));
+    isBadRequest(menuItemApiController.addMenuItemOption("x", makeMenuItemOptionDto("olives","0.30")));
+    isBadRequest(menuItemApiController.addMenuItemOption("x", makeMenuItemOptionDto(null,"0.30")));
+  }
+
+  private void isBadRequest(final ResponseEntity<String> stringResponseEntity) {
+    if (!Objects.equals(stringResponseEntity.getStatusCode(), HttpStatus.BAD_REQUEST)) {
+      //noinspection ProhibitedExceptionThrown
+      throw new RuntimeException(String.format(
+          "status %s with String \"%s\" should be BAD_REQUEST", 
+          stringResponseEntity.getStatusCode(), 
+          stringResponseEntity.getBody()
+      ));
+    }
+  }
+  
+  // Test of deleteOption()
+  
+  @Test
+  public void testDeleteOption() throws ResponseException {
+    MenuItemDto menuItemDto = new MenuItemDto();
+    menuItemDto.setName("Pizza");
+    menuItemDto.setAllowedOptions(new LinkedList<>());
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("pepperoni", "0.30"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("sausage", "0.30"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("mushrooms", "0.15"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("bell peppers", "0.15"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("olives", "0.00"));
+    menuItemDto.getAllowedOptions().add(makeMenuItemOptionDto("onions", "0.00"));
+    menuItemDto.setItemPrice("5.95");
+    ResponseEntity<String> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
+    String body = responseEntity.getBody();
+    System.out.printf("Body: <%s>%n", body);
+    Integer id = PojoUtility.decodeIdString(body.substring(body.indexOf('=') + 1));
+    
+    MenuItem item = menuItemApiController.getMenuItemTestOnly(id);
+    Hibernate.initialize(item.getAllowedOptionsList());
+    List<String> nameList = new LinkedList<>();
+    for (MenuItemOption option : item.getAllowedOptionsList()) {
+      nameList.add(option.getName());
+    }
+    assertThat(nameList, hasItems("pepperoni", "sausage", "mushrooms", "bell peppers", "olives", "onions"));
+    
+    
+    ResponseEntity<Void> badResponseOne = menuItemApiController.deleteOption("BAD");
+    assertEquals(HttpStatus.BAD_REQUEST, badResponseOne.getStatusCode());
+
+    ResponseEntity<Void> badResponseTwo = menuItemApiController.deleteOption("100000");
+    assertEquals(HttpStatus.BAD_REQUEST, badResponseTwo.getStatusCode());
+
+    MenuItemOption removedOption = item.getAllowedOptionsList().iterator().next();
+    String removedName = removedOption.getName();
+    int removedId = removedOption.getId();
+    assertTrue(hasName(item, removedName));
+    assertNotNull(menuItemApiController.getMenuItemOptionTestOnly(removedId));
+    ResponseEntity<Void> goodResponse = menuItemApiController.deleteOption(removedOption.getId().toString());
+    
+    assertEquals(HttpStatus.OK, goodResponse.getStatusCode());
+    
+    List<MenuItemOption> allOptions = menuItemApiController.findAllOptionsTestOnly();
+    for (MenuItemOption option: allOptions) {
+      System.out.println(option);
+    }
+    
+    item = menuItemApiController.getMenuItemTestOnly(id);
+    assertFalse(hasName(item, removedName));
+    assertNull(menuItemApiController.getMenuItemOptionTestOnly(removedId));
+  }
+  
+  private static boolean hasName(MenuItem item, String optionName) {
+    for (MenuItemOption option : item.getAllowedOptionsList()) {
+      if (Objects.equals(option.getName(), optionName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static MenuItemOption makeOption(String name, String price, MenuItem menuItem) {
+    MenuItemOption option = new MenuItemOption();
+    option.setName(name);
+    option.setDeltaPrice(new BigDecimal(price));
+    option.setMenuItem(menuItem);
+    return option;
   }
 }

@@ -65,11 +65,22 @@ public class MenuItemOption {
 
     final MenuItemOption that = (MenuItemOption) o;
 
-    return getId() != null ? getId().equals(that.getId()) : that.getId() == null;
+    return (getId() != null) ? getId().equals(that.getId()) : (that.getId() == null);
   }
 
   @Override
   public int hashCode() {
-    return getId() != null ? getId().hashCode() : 0;
+    return (getId() != null) ? getId().hashCode() : 0;
+  }
+
+  @Override
+  public String toString() {
+    //noinspection StringConcatenation,ObjectToString,MagicCharacter
+    return "MenuItemOption{" +
+        "id=" + id +
+        ", menuItem=" + menuItem +
+        ", deltaPrice=" + deltaPrice +
+        ", name='" + name + '\'' +
+        '}';
   }
 }

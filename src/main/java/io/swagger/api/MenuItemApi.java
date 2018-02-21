@@ -43,7 +43,7 @@ public interface MenuItemApi {
         @ApiResponse(code = 400, message = "Bad Request") })
     @RequestMapping(value = "/menuItem/addOption/{menuItemId}",
         method = RequestMethod.POST)
-    ResponseEntity<Void> addMenuItemOption(@ApiParam(value = "ID of the MenuItem getting the new option", required = true) @PathVariable("menuItemId") String menuItemId, @ApiParam(value = "MenuItemOption", required = true) @Valid @RequestBody MenuItemOptionDto option);
+    ResponseEntity<String> addMenuItemOption(@ApiParam(value = "ID of the MenuItem getting the new option", required = true) @PathVariable("menuItemId") String menuItemId, @ApiParam(value = "MenuItemOption", required = true) @Valid @RequestBody MenuItemOptionDto option);
 
 
     @ApiOperation(value = "Delete a MenuItemOption", nickname = "deleteOption", notes = "Delete a MenuItemOption from a MenuItem.", tags={  })

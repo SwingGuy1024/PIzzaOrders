@@ -10,6 +10,7 @@ import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.disney.miguelmunoz.challenge.util.ResponseUtility;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
@@ -51,8 +52,18 @@ public class MenuItemApiController implements MenuItemApi {
   }
 
   @Override
-  public ResponseEntity<Void> addMenuItemOption(final String menuItemId, final MenuItemOptionDto option) {
-    return null;
+  public ResponseEntity<String> addMenuItemOption(final String menuItemId, final MenuItemOptionDto optionDto) {
+    try {
+      notEmpty(optionDto.getName()); // throws ResponseException
+      MenuItemOption option = objectMapper.convertValue(optionDto, MenuItemOption.class);
+      Integer itemId = decodeIdString(menuItemId); // throws ResponseException
+      final MenuItem menuItem = menuItemRepository.findOne(itemId);
+      option.setMenuItem(menuItem);
+      MenuItemOption savedOpton = menuItemOptionRepository.save(option);
+      return makeCreatedResponseWithId(savedOpton.getId());
+    } catch (Exception | Error e) {
+      return makeStringResponse(e);
+    }
   }
 
   @Override
@@ -67,50 +78,55 @@ public class MenuItemApiController implements MenuItemApi {
       MenuItem menuItem = convertMenuItem(menuItemDto);
       MenuItem savedItem = menuItemRepository.save(menuItem);
       return makeCreatedResponseWithId(savedItem.getId());
-    } catch (ResponseException e) {
+    } catch (Exception | Error e) {
       return makeStringResponse(e);
     }
   }
 
   private MenuItem convertMenuItem(final @Valid @RequestBody MenuItemDto menuItemDto) {
-    MenuItemOption[] menuItemOptions = getMenuItemOptions(menuItemDto);
-    MenuItem menuItem = new MenuItem();
-    for (MenuItemOption option: menuItemOptions) {
+    final MenuItem menuItem = objectMapper.convertValue(menuItemDto, MenuItem.class);
+
+    // convertValue() gets everything but the allowedValues.
+    List<MenuItemOptionDto> optionDtos = menuItemDto.getAllowedOptions();
+    List<MenuItemOption> options = objectMapper.convertValue(optionDtos, new TypeReference<List<MenuItemOption>>() { });
+//    List<MenuItemOption> options = convertList(optionDtos);
+    for (MenuItemOption option : options) {
       option.setMenuItem(menuItem);
     }
-    menuItem.setMenuItemOptionList(Arrays.asList(menuItemOptions));
-    menuItem.setItemPrice(new BigDecimal(menuItemDto.getItemPrice()));
+    menuItem.setAllowedOptionsList(options);
+
     return menuItem;
-  }
-
-  private MenuItemOption[] getMenuItemOptions(final MenuItemDto menuItemDto) {
-    final List<MenuItemOptionDto> allowedOptions = menuItemDto.getAllowedOptions();
-    MenuItemOption[] array = new MenuItemOption[allowedOptions.size()];
-
-    int index = 0;
-    for (MenuItemOptionDto menuItemOptionDto : allowedOptions) {
-      final MenuItemOption menuItemOption = new MenuItemOption();
-      menuItemOption.setName(menuItemOptionDto.getName());
-      menuItemOption.setDeltaPrice(new BigDecimal(menuItemOptionDto.getDeltaPrice()));
-      array[index++] = menuItemOption;
-    }
-    return array;
   }
 
   @Override
   public ResponseEntity<Void> deleteOption(final String optionId) {
     try {
       Integer id = decodeIdString(optionId);
-      menuItemOptionRepository.delete(id);
+      log.debug("Deleting menuItemOption with id {} evaluates to {}", optionId, id);
+
+      // Before I can successfully delete the menuItemOption, I first have to set its menuItem to null. If I don't
+      // do that, the delete call will fail. I don't know why.
+      MenuItemOption itemToDelete = menuItemOptionRepository.findOne(id);
+      itemToDelete.setMenuItem(null);
+      menuItemOptionRepository.save(itemToDelete);
+      menuItemOptionRepository.delete(itemToDelete);
       return new ResponseEntity<>(HttpStatus.OK);
-    } catch (ResponseException e) {
+    } catch (Exception | Error e) {
       return ResponseUtility.makeResponse(e);
     }
   }
 
-  ////// For unit tests //////
+  ////// For unit tests only! //////
   
   MenuItem getMenuItemTestOnly(int id) {
-    return menuItemRepository.getOne(id);
+    return menuItemRepository.findOne(id);
+  }
+  
+  MenuItemOption getMenuItemOptionTestOnly(int id) {
+    return menuItemOptionRepository.findOne(id);
+  }
+  
+  List<MenuItemOption> findAllOptionsTestOnly() {
+    return menuItemOptionRepository.findAll();
   }
 }

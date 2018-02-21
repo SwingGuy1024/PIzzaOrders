@@ -45,7 +45,7 @@ public enum PojoUtility {
     return null;
   }
 
-  private static final Collection<Object> emptyIterable = Collections.unmodifiableCollection(Collections.emptyList());
+  private static final Iterable<Object> emptyIterable = Collections.unmodifiableCollection(Collections.emptyList());
 
   /**
    * Returns the provided collection. If the collection is null, returns an unmodifiable empty List. This lets you
@@ -57,10 +57,10 @@ public enum PojoUtility {
    * @return the supplied collection, or if it's null, an unmodifiable empty list.
    */
   @SuppressWarnings("unchecked") // always empty, so there are no values to cast incorrectly.
-  public static <T> Collection<T> skipNull(Collection<T> iterable) {
+  public static <T> Iterable<T> skipNull(Iterable<T> iterable) {
     if (iterable == null) {
       //noinspection AssignmentOrReturnOfFieldWithMutableType
-      return (Collection<T>) emptyIterable;
+      return (Iterable<T>) emptyIterable;
     }
     return iterable;
   }
@@ -97,15 +97,19 @@ public enum PojoUtility {
     }
   }
 
-  private static <T> T notNull(T title) throws ResponseException {
-    if (title == null) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, "Missing title");
+  private static <T> T notNull(T object) throws ResponseException {
+    if (object == null) {
+      throw new ResponseException(HttpStatus.BAD_REQUEST, "Missing object");
     }
-    return title;
+    return object;
   }
 
   public static <T> List<LinkedHashMap<String, ?>> convertTitles(String json) throws IOException {
     return mapper.readValue(json, new TypeReference<List<T>>() { });
+  }
+  
+  public static <I, O> List<O> convertList(List<I> iList) {
+    return mapper.convertValue(iList, new TypeReference<List<O>>() { });
   }
 
   private static Date parse(String dateText) {
@@ -121,16 +125,24 @@ public enum PojoUtility {
 
   /**
    * Returns the String, or an empty String if the String is null.
+   * The return value is usually not used, since this is just to test for valid data.
    * @param s The String
    * @return The original String, or an empty String if the original was empty. Never returns null.
    */
   public static String notNull(String s) {
     return (s == null) ? "" : s;
   }
-  
+
+  /**
+   * Returns the String. Throws a ResponseException if the String is null or empty. 
+   * The return value is usually not used, since this is just to test for valid data.
+   * @param s The String
+   * @return s
+   * @throws ResponseException if the String is null or empty
+   */
   public static String notEmpty(String s) throws ResponseException {
     if ((s == null) || s.isEmpty()) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, "Null or empty value");
+      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Null or empty value: \"%s\"", s));
     }
     return s;
   }

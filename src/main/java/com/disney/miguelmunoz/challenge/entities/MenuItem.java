@@ -3,7 +3,6 @@ package com.disney.miguelmunoz.challenge.entities;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -23,7 +22,7 @@ public class MenuItem {
   private Integer id;
   private String name;
   private BigDecimal itemPrice;
-  private Collection<MenuItemOption> menuItemOptionList = new LinkedList<>();
+  private Collection<MenuItemOption> allowedOptionsList = new LinkedList<>();
 
   @Id
   @GeneratedValue
@@ -52,15 +51,15 @@ public class MenuItem {
   }
 
   @OneToMany(mappedBy = "menuItem", targetEntity = MenuItemOption.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  public Collection<MenuItemOption> getMenuItemOptionList() {
-    return menuItemOptionList;
+  public Collection<MenuItemOption> getAllowedOptionsList() {
+    return allowedOptionsList;
   }
 
-  public void setMenuItemOptionList(final Collection<MenuItemOption> menuItemOptionList) {
-    if (menuItemOptionList == null) {
-      this.menuItemOptionList = new LinkedList<>();
+  public void setAllowedOptionsList(final Collection<MenuItemOption> allowedOptionsList) {
+    if (allowedOptionsList == null) {
+      this.allowedOptionsList = new LinkedList<>();
     } else {
-      this.menuItemOptionList = menuItemOptionList;
+      this.allowedOptionsList = allowedOptionsList;
     }
   }
 
