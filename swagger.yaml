@@ -11,7 +11,7 @@ info:
 paths:
   /menuItem:
     put:
-      summary: Add a MenuItem, with MenuItemOptions.
+      summary: Add a MenuItem, with optional MenuItemOptions.
       description: |
         Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed from the MenuItem API
       operationId: addMenuItem
@@ -24,11 +24,37 @@ paths:
           $ref: '#/definitions/MenuItemDto'
       consumes:
       - application/json
+      produces: 
+      - application/json
       responses:
         201:
           description: Menu Item Created
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         400:
           description: Bad Request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
+  /menuItem/{id}:
+    get:
+      summary: Gets a menuItem by ID
+      operationId: getMenuItem
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: id
+        description: id of menuItem to find
+        required: true
+        type: integer
+        format: int32
+      responses:
+        200:
+          description: Found
+          schema:
+            $ref: '#/definitions/MenuItemDto'
+        404:
+          description: NotFound
   /menuItem/addOption/{menuItemId}:
     post:
       summary: Add a menuItemOption
@@ -47,11 +73,17 @@ paths:
         description: MenuItemOption
         schema:
           $ref: '#/definitions/MenuItemOptionDto'
+      produces: 
+      - application/json
       responses:
         201:
           description: MenuItemOption added
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         400:
           description: Bad Request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
   /menuItem/deleteOption/{optionId}:
     delete:
       summary: Delete a MenuItemOption
@@ -63,11 +95,15 @@ paths:
         required: true
         description: ID of the MenuItemOpton to delete
         type: string
+      produces: 
+      - application/json
       responses:
         200:
-          description: MenuItemOption added
+          description: MenuItemOption deleted
         400:
           description: Bad Request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
   /order:
     put:
       summary: Place an order
@@ -75,6 +111,8 @@ paths:
         Place an order for a MenuItem, with a list of MenuItemOptions.
       operationId: addOrder
       consumes:
+      - application/json
+      produces: 
       - application/json
       parameters:
       - in: body
@@ -86,14 +124,20 @@ paths:
       responses:
         201:
           description: Order Placed
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         400:
           description: Bad Request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
     post:
       summary: Update an order
       description: |
         Update an order for a MenuItem, with a list of MenuItemOptions.
       operationId: updateOrder
       consumes:
+      - application/json
+      produces: 
       - application/json
       parameters:
       - in: body
@@ -105,8 +149,13 @@ paths:
       responses:
         202:
           description: Order Updated
+          schema:
+            $ref: '#/definitions/CreatedResponse'
+          
         400:
           description: Bad Request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
   /order/complete/{id}:
     post:
       summary: Mark an order completed
@@ -119,11 +168,17 @@ paths:
         description: The id of the completed order
         required: true
         type: string
+      produces: 
+      - application/json
       responses:
         202:
           description: Order Completed
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         400:
           description: Bad Request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
   /order/{id}:
     get:
       summary: search for an order by id
@@ -139,12 +194,18 @@ paths:
         required: true
         type: string
       responses:
-        302:
+        200:
           description: search results found
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         404:
           description: Not found
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         400:
           description: bad request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
     delete:
       summary: delete an order
       description: |
@@ -156,11 +217,17 @@ paths:
         description: The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.
         required: true
         type: string
+      produces: 
+      - application/json
       responses:
         202:
-          description: Order Updated
+          description: Order Deleted
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         400:
           description: Bad Request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
   /order/search:
     get:
       summary: search for an order by completed status and date range
@@ -190,12 +257,18 @@ paths:
         format: date-time
         required: false
       responses:
-        302:
+        200:
           description: search results found
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         404:
           description: Not found
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         400:
           description: bad request
+          schema:
+            $ref: '#/definitions/CreatedResponse'
 definitions:
   MenuItemOptionDto:
     type: object
@@ -239,9 +312,6 @@ definitions:
       complete:
         type: boolean
         description: Order complete
-      finalPrice:
-        type: string
-        description: Floating point price. Strings are easier to work with.
       id:
         type: integer
         format: int32
@@ -251,12 +321,31 @@ definitions:
       completeTime:
         type: string
         format: date-time
+  CreatedResponse:
+    properties:
+      id:
+        type: string
+        format: int32
+      httpStatus:
+        # Note on numbers:
+        #   string  int32 gives String
+        #   integer int32 gives Integer
+        #   number  int32 gives BigDecimal
+        # I don't know how to get BigInteger.
+        type: integer
+        format: int32
+      message:
+        type: string
+      body:
+        description: Json description of result.
+        type: string
+    required:
+      - code
+      - message
 # Added by API Auto Mocking Plugin
 host: virtserver.swaggerhub.com
 schemes:
  - https
  - http
-# Added by API Auto Mocking Plugin
-# basePath: /NeptuneDreams/CustomerOrders/1.0.0
 # Added by API Auto Mocking Plugin
 basePath: /NeptuneDreams/FoodOrders/1.0.0

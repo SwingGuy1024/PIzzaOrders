@@ -22,7 +22,7 @@ public class MenuItem {
   private Integer id;
   private String name;
   private BigDecimal itemPrice;
-  private Collection<MenuItemOption> allowedOptionsList = new LinkedList<>();
+  private Collection<MenuItemOption> allowedOptions = new LinkedList<>();
 
   @Id
   @GeneratedValue
@@ -51,15 +51,15 @@ public class MenuItem {
   }
 
   @OneToMany(mappedBy = "menuItem", targetEntity = MenuItemOption.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  public Collection<MenuItemOption> getAllowedOptionsList() {
-    return allowedOptionsList;
+  public Collection<MenuItemOption> getAllowedOptions() {
+    return allowedOptions;
   }
 
-  public void setAllowedOptionsList(final Collection<MenuItemOption> allowedOptionsList) {
-    if (allowedOptionsList == null) {
-      this.allowedOptionsList = new LinkedList<>();
+  public void setAllowedOptions(final Collection<MenuItemOption> allowedOptions) {
+    if (allowedOptions == null) {
+      this.allowedOptions = new LinkedList<>();
     } else {
-      this.allowedOptionsList = allowedOptionsList;
+      this.allowedOptions = allowedOptions;
     }
   }
 

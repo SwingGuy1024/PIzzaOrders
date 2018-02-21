@@ -15,7 +15,7 @@ import javax.validation.constraints.*;
  */
 @ApiModel(description = "Option for a MenuItem")
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T19:52:41.440Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:16:24.928Z")
 
 public class MenuItemOptionDto   {
   @JsonProperty("name")
@@ -77,10 +77,10 @@ public class MenuItemOptionDto   {
   }
 
    /**
-   * floating point price. Strings are easier to work with.
+   * Floating point price. Strings are easier to work with.
    * @return deltaPrice
   **/
-  @ApiModelProperty(value = "floating point price. Strings are easier to work with.")
+  @ApiModelProperty(value = "Floating point price. Strings are easier to work with.")
 
 
   public String getDeltaPrice() {

@@ -1,71 +1,107 @@
 package io.swagger.api;
 
-import io.swagger.model.CustomerOrderDto;
-import org.threeten.bp.OffsetDateTime;
+import java.sql.Date;
+import java.util.List;
+import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
+import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.annotations.*;
+import io.swagger.model.CreatedResponse;
+import io.swagger.model.CustomerOrderDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
+import org.threeten.bp.OffsetDateTime;
 
-import javax.validation.constraints.*;
-import javax.validation.Valid;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.List;
+import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
+import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
+
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
 
 @Controller
 public class OrderApiController implements OrderApi {
 
-    private static final Logger log = LoggerFactory.getLogger(OrderApiController.class);
+  private static final Logger log = LoggerFactory.getLogger(OrderApiController.class);
 
-    private final ObjectMapper objectMapper;
+  @Autowired
+  private final ObjectMapper objectMapper;
 
-    private final HttpServletRequest request;
+//  private final HttpServletRequest request;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    public OrderApiController(ObjectMapper objectMapper, HttpServletRequest request) {
-        this.objectMapper = objectMapper;
-        this.request = request;
+  @Autowired
+  private CustomerOrderRepository customerOrderRepository;
+
+  public OrderApiController(ObjectMapper objectMapper, CustomerOrderRepository repository) {
+    this.objectMapper = objectMapper;
+    this.customerOrderRepository = repository;
+  }
+
+  @Override
+  public ResponseEntity<CreatedResponse> addOrder(CustomerOrderDto order) {
+    CustomerOrder orderEntity = makeCustomerOrder(order);
+    try {
+      confirmNull(orderEntity.getId());
+      confirmNull(orderEntity.getCompleteTime());
+      confirmNotNull(orderEntity.getMenuItem());
+      confirmEqual(Boolean.FALSE, orderEntity.getComplete());
+      
+      orderEntity.setOrderTime(new Date(System.currentTimeMillis()));
+      CustomerOrder savedOrder = customerOrderRepository.save(orderEntity);
+      return makeCreatedResponseWithId(savedOrder.getId().toString());
+    } catch (Exception e) {
+      return makeErrorResponse(e);
     }
+  }
 
-    public ResponseEntity<Void> addOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody CustomerOrderDto order) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+  @Override
+  public ResponseEntity<Void> completeOrder(final String id) {
+    try {
+      CustomerOrder order = customerOrderRepository.findOne(decodeIdString(id));
+      confirmNotNull(order);
+      confirmEqual("Already Complete", Boolean.FALSE, order.getComplete());
+      order.setComplete(true);
+      order.setCompleteTime(new Date(System.currentTimeMillis()));
+      return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    } catch (Exception e) {
+      return makeVoidResponse(e);
     }
+  }
 
-    public ResponseEntity<Void> completeOrder(@ApiParam(value = "The id of the completed order",required=true) @PathVariable("id") String id) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+  @Override
+  public ResponseEntity<Void> deleteOrder(final String id) {
+    return null;
+  }
+
+  @Override
+  public ResponseEntity<CreatedResponse> searchByComplete(final OffsetDateTime startingDate, final Boolean complete, final OffsetDateTime endingDate) {
+    return null;
+  }
+
+  @Override
+  public ResponseEntity<CreatedResponse> searchForOrder(final String id) {
+    try {
+      CustomerOrder order = customerOrderRepository.findOne(decodeIdString(id));
+      return makeStatusResponse(HttpStatus.FOUND, id);
+    } catch (Exception e) {
+      return makeErrorResponse(e);
     }
+  }
 
-    public ResponseEntity<Void> deleteOrder(@ApiParam(value = "The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.",required=true) @PathVariable("id") String id) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
-    }
+  @Override
+  public ResponseEntity<Void> updateOrder(final CustomerOrderDto order) {
+    return null;
+  }
 
-    public ResponseEntity<Void> searchByComplete(@NotNull @ApiParam(value = "starting date of the order to search for, inclusive, or the date, if no ending date is specified. Format: yyyy-MM-dd ", required = true) @Valid @RequestParam(value = "startingDate", required = true) OffsetDateTime startingDate,@ApiParam(value = "If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.") @Valid @RequestParam(value = "complete", required = false) Boolean complete,@ApiParam(value = "Ending date of order to search for, inclusive. If missing, the starting date is used. Format: yyyy-MM-dd ") @Valid @RequestParam(value = "endingDate", required = false) OffsetDateTime endingDate) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
-    }
+  private CustomerOrder makeCustomerOrder(final CustomerOrderDto order) {
+    return objectMapper.convertValue(order, CustomerOrder.class);
+  }
 
-    public ResponseEntity<Void> searchForOrder(@ApiParam(value = "id of the order to search for",required=true) @PathVariable("id") String id) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
-    }
 
-    public ResponseEntity<Void> updateOrder(@ApiParam(value = "The contents of the order" ,required=true )  @Valid @RequestBody CustomerOrderDto order) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
-    }
+  ////// Package-leve methods for unit tests only! //////
 
+  List<CustomerOrder> getAllTestOnly() {
+    return customerOrderRepository.findAll();
+  }
 }

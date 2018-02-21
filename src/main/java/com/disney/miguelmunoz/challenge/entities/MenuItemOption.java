@@ -1,6 +1,7 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.math.BigDecimal;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -31,7 +32,7 @@ public class MenuItemOption {
     this.id = id;
   }
 
-  @ManyToOne
+  @ManyToOne(cascade = CascadeType.REMOVE)
   @JoinColumn(name="menu_item_id")
   public MenuItem getMenuItem() {
     return menuItem;

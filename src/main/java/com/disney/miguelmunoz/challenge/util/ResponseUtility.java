@@ -1,6 +1,7 @@
 package com.disney.miguelmunoz.challenge.util;
 
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
+import io.swagger.model.CreatedResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 public enum ResponseUtility {
   ;
   private static final Logger log = LoggerFactory.getLogger(ResponseUtility.class);
-  public static ResponseEntity<Void> makeResponse(Throwable t) {
+  public static ResponseEntity<Void> makeVoidResponse(Throwable t) {
     if (t instanceof ResponseException) {
       ResponseException ex = (ResponseException) t;
       final HttpStatus httpStatus = ex.getHttpStatus();
@@ -27,27 +28,56 @@ public enum ResponseUtility {
     return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
   }
   
-  public static ResponseEntity<String> makeStringResponse(Throwable t) {
+  public static ResponseEntity<CreatedResponse> makeErrorResponse(Throwable t) {
     if (t instanceof ResponseException) {
       ResponseException ex = (ResponseException) t;
       final HttpStatus httpStatus = ex.getHttpStatus();
       log.debug(httpStatus.toString(), ex);
-      return new ResponseEntity<>(createMessage(ex), httpStatus);
+      return new ResponseEntity<>(makeError(ex), httpStatus);
     }
     log.debug(t.getMessage(), t);
-    return new ResponseEntity<String>(createMessage(t), HttpStatus.BAD_REQUEST);
+    return new ResponseEntity<>(makeError(t), HttpStatus.BAD_REQUEST);
   }
   
+  private static CreatedResponse makeError(Throwable t) {
+    CreatedResponse error = new CreatedResponse();
+    HttpStatus status;
+    if (t instanceof ResponseException) {
+      ResponseException ex = (ResponseException) t;
+      status = ex.getHttpStatus();
+      error.setHttpStatus(status.value());
+      error.setMessage(String.format("%s: %s", status.getReasonPhrase(), t.getMessage()));
+    } else {
+      status = HttpStatus.BAD_REQUEST;
+      error.setHttpStatus(status.value());
+      error.setMessage(t.getMessage());
+    }
+    log.debug(String.format("%s: %s", status, error.getMessage()), t);
+    return error;
+  }
+
 //  public static ResponseEntity<?> makeUnknownProblemResponse(Throwable t) {
 //    final HttpStatus httpStatus
 //  }
+
+  public static ResponseEntity<Void> makeStatusResponse(HttpStatus status) {
+    return new ResponseEntity<>(status);
+  }
   
-  public static ResponseEntity<String> makeResponseWithId(HttpStatus status, Integer id) {
-    return new ResponseEntity<String>(String.format("id=%s", id), status );
+  public static ResponseEntity<CreatedResponse> makeStatusResponse(HttpStatus status, String content) {
+    final CreatedResponse response = new CreatedResponse();
+    response.setBody(content);
+    return new ResponseEntity<>(response, status);
+  }
+  
+  public static ResponseEntity<CreatedResponse> makeCreatedResponseWithId(String id) {
+    CreatedResponse response = new CreatedResponse();
+    response.setId(id);
+    return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
-  public static ResponseEntity<String> makeCreatedResponseWithId(Integer id) {
-    return makeResponseWithId(HttpStatus.CREATED, id);
+  public static <T> ResponseEntity<T> makeCreatedResponse(T body) {
+    return new ResponseEntity<>(body, HttpStatus.CREATED);
   }
 
   private static String createMessage(ResponseException ex) {

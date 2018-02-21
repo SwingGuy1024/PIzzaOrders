@@ -1,7 +1,5 @@
 package io.swagger.api;
 
-import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 import javax.validation.Valid;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
@@ -10,8 +8,8 @@ import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.disney.miguelmunoz.challenge.util.ResponseUtility;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.model.CreatedResponse;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
 import org.slf4j.Logger;
@@ -20,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
@@ -52,22 +51,25 @@ public class MenuItemApiController implements MenuItemApi {
   }
 
   @Override
-  public ResponseEntity<String> addMenuItemOption(final String menuItemId, final MenuItemOptionDto optionDto) {
+  public ResponseEntity<CreatedResponse> addMenuItemOption(
+      @PathVariable("menuItemId") String menuItemId, 
+      @Valid @RequestBody MenuItemOptionDto optionDto
+  ) {
     try {
-      notEmpty(optionDto.getName()); // throws ResponseException
+      confirmNotEmpty(optionDto.getName()); // throws ResponseException
       MenuItemOption option = objectMapper.convertValue(optionDto, MenuItemOption.class);
       Integer itemId = decodeIdString(menuItemId); // throws ResponseException
       final MenuItem menuItem = menuItemRepository.findOne(itemId);
       option.setMenuItem(menuItem);
       MenuItemOption savedOpton = menuItemOptionRepository.save(option);
-      return makeCreatedResponseWithId(savedOpton.getId());
+      return makeCreatedResponseWithId(savedOpton.getId().toString());
     } catch (Exception | Error e) {
-      return makeStringResponse(e);
+      return makeErrorResponse(e);
     }
   }
 
   @Override
-  public ResponseEntity<String> addMenuItem(@Valid @RequestBody MenuItemDto menuItemDto) {
+  public ResponseEntity<CreatedResponse> addMenuItem(@Valid @RequestBody MenuItemDto menuItemDto) {
     try {
       for (MenuItemOptionDto option : skipNull(menuItemDto.getAllowedOptions())) {
         final String optionName = option.getName();
@@ -77,47 +79,58 @@ public class MenuItemApiController implements MenuItemApi {
       }
       MenuItem menuItem = convertMenuItem(menuItemDto);
       MenuItem savedItem = menuItemRepository.save(menuItem);
-      return makeCreatedResponseWithId(savedItem.getId());
+      return makeCreatedResponseWithId(savedItem.getId().toString());
     } catch (Exception | Error e) {
-      return makeStringResponse(e);
+      return makeErrorResponse(e);
     }
   }
 
   private MenuItem convertMenuItem(final @Valid @RequestBody MenuItemDto menuItemDto) {
     final MenuItem menuItem = objectMapper.convertValue(menuItemDto, MenuItem.class);
 
-    // convertValue() gets everything but the allowedValues.
-    List<MenuItemOptionDto> optionDtos = menuItemDto.getAllowedOptions();
-    List<MenuItemOption> options = objectMapper.convertValue(optionDtos, new TypeReference<List<MenuItemOption>>() { });
-//    List<MenuItemOption> options = convertList(optionDtos);
-    for (MenuItemOption option : options) {
+    // objectMapper doesn't set the menuItems in the options, because it can't handle circular references, so we
+    // set them here.
+    for (MenuItemOption option : menuItem.getAllowedOptions()) {
       option.setMenuItem(menuItem);
     }
-    menuItem.setAllowedOptionsList(options);
 
     return menuItem;
   }
 
   @Override
-  public ResponseEntity<Void> deleteOption(final String optionId) {
+  public ResponseEntity<Void> deleteOption(@PathVariable("optionId") String optionId) {
     try {
       Integer id = decodeIdString(optionId);
       log.debug("Deleting menuItemOption with id {} evaluates to {}", optionId, id);
 
-      // Before I can successfully delete the menuItemOption, I first have to set its menuItem to null. If I don't
-      // do that, the delete call will fail. I don't know why.
       MenuItemOption itemToDelete = menuItemOptionRepository.findOne(id);
+
+      // Before I can successfully delete the menuItemOption, I first have to set its menuItem to null. If I don't
+      // do that, the delete call will fail. It doesn't help to set Cascade to Remove in the @ManyToOne annotation in 
+      // MenuItemOption. Since it's set to ALL in MenuItem's @OneToMany annotation, the Cascade value doesn't seem to 
+      // affect this.
       itemToDelete.setMenuItem(null);
       menuItemOptionRepository.save(itemToDelete);
+
       menuItemOptionRepository.delete(itemToDelete);
       return new ResponseEntity<>(HttpStatus.OK);
     } catch (Exception | Error e) {
-      return ResponseUtility.makeResponse(e);
+      return ResponseUtility.makeVoidResponse(e);
     }
   }
 
-  ////// For unit tests only! //////
-  
+  @Override
+  public ResponseEntity<MenuItemDto> getMenuItem(final Integer id) {
+    MenuItem menuItem = menuItemRepository.findOne(id);
+    if (menuItem == null) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    MenuItemDto dto = objectMapper.convertValue(menuItem, MenuItemDto.class);
+    return new ResponseEntity<>(dto, HttpStatus.OK);
+  }
+
+  ////// Package-leve methods for unit tests only! //////
+
   MenuItem getMenuItemTestOnly(int id) {
     return menuItemRepository.findOne(id);
   }

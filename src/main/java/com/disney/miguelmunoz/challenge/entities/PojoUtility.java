@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,19 +98,37 @@ public enum PojoUtility {
     }
   }
 
-  private static <T> T notNull(T object) throws ResponseException {
+  public static <T> T confirmNotNull(T object) throws ResponseException {
     if (object == null) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, "Missing object");
     }
     return object;
   }
+  
+  public static void confirmNull(Object object) throws ResponseException {
+    if (object != null) {
+      throw new ResponseException(HttpStatus.BAD_REQUEST, "non-null value");
+    }
+  }
 
-  public static <T> List<LinkedHashMap<String, ?>> convertTitles(String json) throws IOException {
+  public static <T> void confirmEqual(T expected, T actual) throws ResponseException {
+    if (!Objects.equals(actual, expected)) {
+      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Expected %s  Found %s", expected, actual));
+    }
+  }
+
+  public static <T> void confirmEqual(String message, T expected, T actual) throws ResponseException {
+    if (!Objects.equals(actual, expected)) {
+      throw new ResponseException(HttpStatus.BAD_REQUEST, message);
+    }
+  }
+
+  public static <T> List<LinkedHashMap<String, ?>> convertEntities(String json) throws IOException {
     return mapper.readValue(json, new TypeReference<List<T>>() { });
   }
   
-  public static <I, O> List<O> convertList(List<I> iList) {
-    return mapper.convertValue(iList, new TypeReference<List<O>>() { });
+  public static <I, O> List<O> convertList(List<I> inputList) {
+    return mapper.convertValue(inputList, new TypeReference<List<O>>() { });
   }
 
   private static Date parse(String dateText) {
@@ -140,7 +159,7 @@ public enum PojoUtility {
    * @return s
    * @throws ResponseException if the String is null or empty
    */
-  public static String notEmpty(String s) throws ResponseException {
+  public static String confirmNotEmpty(String s) throws ResponseException {
     if ((s == null) || s.isEmpty()) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Null or empty value: \"%s\"", s));
     }

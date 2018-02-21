@@ -18,7 +18,7 @@ import javax.validation.constraints.*;
  * CustomerOrderDto
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T19:52:41.440Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:16:24.928Z")
 
 public class CustomerOrderDto   {
   @JsonProperty("menuItem")
@@ -30,9 +30,6 @@ public class CustomerOrderDto   {
 
   @JsonProperty("complete")
   private Boolean complete = null;
-
-  @JsonProperty("finalPrice")
-  private String finalPrice = null;
 
   @JsonProperty("id")
   private Integer id = null;
@@ -113,26 +110,6 @@ public class CustomerOrderDto   {
     this.complete = complete;
   }
 
-  public CustomerOrderDto finalPrice(String finalPrice) {
-    this.finalPrice = finalPrice;
-    return this;
-  }
-
-   /**
-   * floating point price. Strings are easier to work with.
-   * @return finalPrice
-  **/
-  @ApiModelProperty(value = "floating point price. Strings are easier to work with.")
-
-
-  public String getFinalPrice() {
-    return finalPrice;
-  }
-
-  public void setFinalPrice(String finalPrice) {
-    this.finalPrice = finalPrice;
-  }
-
   public CustomerOrderDto id(Integer id) {
     this.id = id;
     return this;
@@ -208,7 +185,6 @@ public class CustomerOrderDto   {
     return Objects.equals(this.menuItem, customerOrderDto.menuItem) &&
         Objects.equals(this.options, customerOrderDto.options) &&
         Objects.equals(this.complete, customerOrderDto.complete) &&
-        Objects.equals(this.finalPrice, customerOrderDto.finalPrice) &&
         Objects.equals(this.id, customerOrderDto.id) &&
         Objects.equals(this.orderTime, customerOrderDto.orderTime) &&
         Objects.equals(this.completeTime, customerOrderDto.completeTime);
@@ -216,7 +192,7 @@ public class CustomerOrderDto   {
 
   @Override
   public int hashCode() {
-    return Objects.hash(menuItem, options, complete, finalPrice, id, orderTime, completeTime);
+    return Objects.hash(menuItem, options, complete, id, orderTime, completeTime);
   }
 
   @Override
@@ -227,7 +203,6 @@ public class CustomerOrderDto   {
     sb.append("    menuItem: ").append(toIndentedString(menuItem)).append("\n");
     sb.append("    options: ").append(toIndentedString(options)).append("\n");
     sb.append("    complete: ").append(toIndentedString(complete)).append("\n");
-    sb.append("    finalPrice: ").append(toIndentedString(finalPrice)).append("\n");
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    orderTime: ").append(toIndentedString(orderTime)).append("\n");
     sb.append("    completeTime: ").append(toIndentedString(completeTime)).append("\n");

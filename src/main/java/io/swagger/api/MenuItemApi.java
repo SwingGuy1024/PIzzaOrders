@@ -5,6 +5,7 @@
  */
 package io.swagger.api;
 
+import io.swagger.model.CreatedResponse;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
 import io.swagger.annotations.*;
@@ -22,36 +23,49 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T19:52:41.440Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:33:56.667Z")
 
 @Api(value = "menuItem", description = "the menuItem API")
 public interface MenuItemApi {
 
-    @ApiOperation(value = "Add a MenuItem, with MenuItemOptions.", nickname = "addMenuItem", notes = "Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed from the MenuItem API ", tags={  })
+    @ApiOperation(value = "Add a MenuItem, with optional MenuItemOptions.", nickname = "addMenuItem", notes = "Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed from the MenuItem API ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Menu Item Created"),
-        @ApiResponse(code = 400, message = "Bad Request") })
+        @ApiResponse(code = 201, message = "Menu Item Created", response = CreatedResponse.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
     @RequestMapping(value = "/menuItem",
+        produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.PUT)
-    ResponseEntity<String> addMenuItem(@ApiParam(value = "Complete menu item, with MenuItemOptions", required = true) @Valid @RequestBody MenuItemDto menuItem);
+    ResponseEntity<CreatedResponse> addMenuItem(@ApiParam(value = "Complete menu item, with MenuItemOptions", required = true) @Valid @RequestBody MenuItemDto menuItem);
 
 
-    @ApiOperation(value = "Add a menuItemOption", nickname = "addMenuItemOption", notes = "Add a MenuItemOption to a MenuItem ", tags={  })
+    @ApiOperation(value = "Add a menuItemOption", nickname = "addMenuItemOption", notes = "Add a MenuItemOption to a MenuItem ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "MenuItemOption added"),
-        @ApiResponse(code = 400, message = "Bad Request") })
+        @ApiResponse(code = 201, message = "MenuItemOption added", response = CreatedResponse.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
     @RequestMapping(value = "/menuItem/addOption/{menuItemId}",
+        produces = { "application/json" }, 
         method = RequestMethod.POST)
-    ResponseEntity<String> addMenuItemOption(@ApiParam(value = "ID of the MenuItem getting the new option", required = true) @PathVariable("menuItemId") String menuItemId, @ApiParam(value = "MenuItemOption", required = true) @Valid @RequestBody MenuItemOptionDto option);
+    ResponseEntity<CreatedResponse> addMenuItemOption(@ApiParam(value = "ID of the MenuItem getting the new option", required = true) @PathVariable("menuItemId") String menuItemId, @ApiParam(value = "MenuItemOption", required = true) @Valid @RequestBody MenuItemOptionDto option);
 
 
     @ApiOperation(value = "Delete a MenuItemOption", nickname = "deleteOption", notes = "Delete a MenuItemOption from a MenuItem.", tags={  })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "MenuItemOption added"),
-        @ApiResponse(code = 400, message = "Bad Request") })
+        @ApiResponse(code = 200, message = "MenuItemOption deleted"),
+        @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
     @RequestMapping(value = "/menuItem/deleteOption/{optionId}",
+        produces = { "application/json" }, 
         method = RequestMethod.DELETE)
     ResponseEntity<Void> deleteOption(@ApiParam(value = "ID of the MenuItemOpton to delete", required = true) @PathVariable("optionId") String optionId);
+
+
+    @ApiOperation(value = "Gets a menuItem by ID", nickname = "getMenuItem", notes = "", response = MenuItemDto.class, tags={  })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Found", response = MenuItemDto.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
+    @RequestMapping(value = "/menuItem/{id}",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<MenuItemDto> getMenuItem(@ApiParam(value = "id of menuItem to find", required = true) @PathVariable("id") Integer id);
 
 }
