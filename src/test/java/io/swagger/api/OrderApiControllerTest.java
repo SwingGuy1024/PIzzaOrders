@@ -1,14 +1,20 @@
 package io.swagger.api;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.LinkedList;
 import java.util.List;
 import com.disney.miguelmunoz.challenge.Application;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
+import com.disney.miguelmunoz.challenge.entities.MenuItem;
+import com.disney.miguelmunoz.challenge.entities.PojoUtility;
+import com.disney.miguelmunoz.challenge.exception.ResponseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
 import io.swagger.model.MenuItemDto;
-import io.swagger.model.MenuItemOptionDto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -45,12 +51,16 @@ public class OrderApiControllerTest {
   
   @Autowired
   private OrderApiController orderApiController;
-  
+
+  @Autowired
+  private ObjectMapper mapper;
   
   @Test
-  public void testAddNewOrder() {
+  public void testAddNewOrder() throws ResponseException {
     MenuItemDto pizzaMenuItemDto = MenuItemApiControllerTest.createPizzaMenuItem();
-    menuItemApiController.addMenuItem(pizzaMenuItemDto);
+    ResponseEntity<CreatedResponse> menuResponse = menuItemApiController.addMenuItem(pizzaMenuItemDto);
+    final String pizzaItemId = menuResponse.getBody().getId();
+    assert pizzaItemId != null;
     
     // Test of addOrder()
 
@@ -124,8 +134,108 @@ public class OrderApiControllerTest {
       assertNotEquals(idString, customerOrder.getId().toString());
     }
     
+    // Test of searchByComplete
+
+    MenuItem menuItem = menuItemApiController.getMenuItemTestOnly(PojoUtility.decodeIdString(pizzaItemId));    
+
+    CustomerOrder orderM5Complete = makeOrder(-5, menuItem, true);
+    CustomerOrder orderM4Complete = makeOrder(-4, menuItem, true);
+    CustomerOrder orderM3Complete = makeOrder(-3, menuItem, true);
+    CustomerOrder orderM2Complete = makeOrder(-2, menuItem, true);
+    CustomerOrder orderM1Complete = makeOrder(-1, menuItem, true);
+    CustomerOrder orderM3 = makeOrder(-3, menuItem, false);
+    CustomerOrder orderM2 = makeOrder(-2, menuItem, false);
+    CustomerOrder orderM1 = makeOrder(-1, menuItem, false);
+
+    Collection<CustomerOrder> currentOrders = orderApiController.getAllTestOnly();
+    log.info("Total of {} orders", currentOrders.size());
+    for (CustomerOrder o : currentOrders) {
+      log.info("id: {}, orderTime: {}, completeTime: {}", o.getId(), o.getOrderTime(), o.getCompleteTime());
+    }
     
+    Date threeDaysAgo = new Date(now.getTimeInMillis() - (3 * OrderApiController.DAY_IN_MILLIS));
+    Collection<CustomerOrder> timedOrder = orderApiController.findByOrderTimeTestOnly(threeDaysAgo);
+    log.info("Search on 3 days ago produced {} results", timedOrder.size());
+    for (CustomerOrder pastOrder : timedOrder) {
+      log.info("id {} orderTime: {}", pastOrder.getId(), pastOrder.getOrderTime());
+    }
     
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+    deltaDaysSearchTest(dateFormat, 8, 5, 3, -5);
+    deltaDaysSearchTest(dateFormat, 7, 4, 3, -4);
+    deltaDaysSearchTest(dateFormat, 6, 3, 3, -3);
+    deltaDaysSearchTest(dateFormat, 4, 2, 2, -2);
+    
+    SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
+    deltaDaysSearchTest(dateTimeFormat, 8, 5, 3, -5);
+    deltaDaysSearchTest(dateTimeFormat, 7, 4, 3, -4);
+    deltaDaysSearchTest(dateTimeFormat, 6, 3, 3, -3);
+    deltaDaysSearchTest(dateTimeFormat, 4, 2, 2, -2);
+
+  }
+
+  /**
+   * test for search results starting at a different number of days before today. 
+   * @param dateFormat The format used to parse data
+   * @param fullCount expected count for all values of Completed
+   * @param trueCount expect count for completed = true
+   * @param falseCount expect count for completed = false
+   * @param delta The number of days to go back for the starting point.
+   */
+  private void deltaDaysSearchTest(final SimpleDateFormat dateFormat, final int fullCount, final int trueCount, final int falseCount, final int delta) {
+    final Date nowTime = new Date(System.currentTimeMillis());
+    String nowTimeTxt = dateFormat.format(nowTime);
+
+    // Search from 5 days earlier to now 
+    final String startOfRange = delta(nowTime, delta, dateFormat);
+    ResponseEntity<List<CustomerOrderDto>> dtoListResponse 
+        = orderApiController.searchByComplete(startOfRange, null, nowTimeTxt);
+    List<CustomerOrderDto> dtoList = dtoListResponse.getBody();
+    assertNotNull(dtoList);
+    assertEquals(fullCount, dtoList.size());
+    
+    log.info("Search Test({}, {}, {}, {}) produced {} results", fullCount, trueCount, falseCount, delta, dtoList.size());
+    for (CustomerOrderDto dto : dtoList) {
+      log.info("id {} startTime {}", dto.getId(), dto.getOrderTime());
+    }
+
+    dtoListResponse = orderApiController.searchByComplete(startOfRange, true, nowTimeTxt);
+    dtoList = dtoListResponse.getBody();
+    assertEquals(trueCount, dtoList.size());
+
+    dtoListResponse = orderApiController.searchByComplete(startOfRange, false, nowTimeTxt);
+    dtoList = dtoListResponse.getBody();
+    assertEquals(falseCount, dtoList.size());
+  }
+
+  /**
+   * Returns a time the specified number of days from the given date
+   * @param date The given date
+   * @param deltaDays The number of days to add or subtract
+   * @param fmt The DateFormat instance to format the date
+   * @return The resulting date, as a String.
+   */
+  private String delta(Date date, int deltaDays, DateFormat fmt) {
+    return fmt.format(new Date(date.getTime() + (deltaDays * OrderApiController.DAY_IN_MILLIS)));
+  }
+  
+  private CustomerOrder makeOrder(int deltaDays, MenuItem menuItem, boolean complete) {
+    CustomerOrder order = new CustomerOrder();
+    order.setMenuItem(menuItem);
+    final long dateMillis = System.currentTimeMillis() + ((OrderApiController.DAY_IN_MILLIS * deltaDays) + 3600000); // add an hour
+    Date date = new Date(dateMillis);
+    order.setOrderTime(date);
+    if (complete) {
+      Date fiveDaysLater = new Date(dateMillis + (5 * OrderApiController.DAY_IN_MILLIS));
+      order.setComplete(true);
+      order.setCompleteTime(fiveDaysLater);
+    }
+    CustomerOrder savedOrder = orderApiController.saveOrderTestOnly(order);
+    log.info("Created order id {}", savedOrder.getId());
+    log.info("        {}", order);
+    return order;
   }
   
   private void assertCreated(final ResponseEntity<?> responseEntity) {

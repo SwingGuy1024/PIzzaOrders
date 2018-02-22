@@ -41,6 +41,7 @@ public class MenuItemOption {
     this.id = id;
   }
 
+  @JsonIgnore
   @ManyToOne(cascade = CascadeType.REMOVE)
   @JoinColumn(name="menu_item_id")
   public MenuItem getMenuItem() {

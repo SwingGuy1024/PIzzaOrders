@@ -224,9 +224,33 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/CreatedResponse'
+  /order/addMenuItemOption/{order_id}/{menu_option_id}:
+    post:
+      summary: Add a menuItemOption to the order.
+      description: |
+        Add a menu item option, taken from the Order's menu item, to the specified open order.
+      operationId: addMenuItemOptionToOrder
+      parameters:
+      - in: path
+        name: order_id
+        description: The id of the customer order
+        required: true
+        type: string
+      - in: path
+        name: menu_option_id
+        description: The id of Menu Item Option to add
+        required: true
+        type: string
+      produces: 
+      - application/json
+      responses:
+        202:
+          description: Order Completed
+        400:
+          description: Bad Request
   /order/search:
     get:
-      summary: search for an order by completed status and date range
+      summary: search for an order by completed status and order date, over a date range
       description: |
         Retrieve an order by its completed status, with a date range. Returns an array of items
       operationId: searchByComplete
@@ -234,29 +258,29 @@ paths:
       - applicaton/json
       parameters:
       - in: query
-        name: startingDate
-        description: |
-          starting date of the order to search for, inclusive, or the date, if no ending date is specified. Format: yyyy-MM-dd
-        required: true
-        type: string
-        format: date-time
-      - in: query
         name: complete
         type: boolean
         required: false
         description: If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.
       - in: query
+        name: startingDate
+        description: |
+          Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format: yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time
+        required: true
+        type: string
+      - in: query
         name: endingDate
         description: |
-          Ending date of order to search for, inclusive. If missing, the starting date is used. Format: yyyy-MM-dd
+          End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format: yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time
         type: string
-        format: date-time
         required: false
       responses:
         200:
           description: search results found
           schema:
-            $ref: '#/definitions/CreatedResponse'
+            type: array
+            items:
+              $ref: '#/definitions/CustomerOrderDto'
         404:
           description: Not found
           schema:

@@ -7,7 +7,6 @@ package io.swagger.api;
 
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
-import org.threeten.bp.OffsetDateTime;
 import io.swagger.annotations.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -23,10 +22,20 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:52:21.167Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-22T07:43:34.844Z")
 
 @Api(value = "order", description = "the order API")
 public interface OrderApi {
+
+    @ApiOperation(value = "Add a menuItemOption to the order.", nickname = "addMenuItemOptionToOrder", notes = "Add a menu item option, taken from the Order's menu item, to the specified open order. ", tags={  })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 202, message = "Order Completed"),
+        @ApiResponse(code = 400, message = "Bad Request") })
+    @RequestMapping(value = "/order/addMenuItemOption/{order_id}/{menu_option_id}",
+        produces = { "application/json" }, 
+        method = RequestMethod.POST)
+    ResponseEntity<Void> addMenuItemOptionToOrder(@ApiParam(value = "The id of the customer order", required = true) @PathVariable("order_id") String orderId, @ApiParam(value = "The id of Menu Item Option to add", required = true) @PathVariable("menu_option_id") String menuOptionId);
+
 
     @ApiOperation(value = "Place an order", nickname = "addOrder", notes = "Place an order for a MenuItem, with a list of MenuItemOptions. ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
@@ -59,15 +68,15 @@ public interface OrderApi {
     ResponseEntity<CreatedResponse> deleteOrder(@ApiParam(value = "The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.", required = true) @PathVariable("id") String id);
 
 
-    @ApiOperation(value = "search for an order by completed status and date range", nickname = "searchByComplete", notes = "Retrieve an order by its completed status, with a date range. Returns an array of items ", response = CreatedResponse.class, tags={  })
+    @ApiOperation(value = "search for an order by completed status and order date, over a date range", nickname = "searchByComplete", notes = "Retrieve an order by its completed status, with a date range. Returns an array of items ", response = CustomerOrderDto.class, responseContainer = "List", tags={  })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "search results found", response = CreatedResponse.class),
+        @ApiResponse(code = 200, message = "search results found", response = CustomerOrderDto.class, responseContainer = "List"),
         @ApiResponse(code = 400, message = "bad request", response = CreatedResponse.class),
         @ApiResponse(code = 404, message = "Not found", response = CreatedResponse.class) })
     @RequestMapping(value = "/order/search",
         produces = { "applicaton/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<CreatedResponse> searchByComplete(@NotNull @ApiParam(value = "starting date of the order to search for, inclusive, or the date, if no ending date is specified. Format: yyyy-MM-dd ", required = true) @Valid @RequestParam(value = "startingDate", required = true) OffsetDateTime startingDate, @ApiParam(value = "If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.") @Valid @RequestParam(value = "complete", required = false) Boolean complete, @ApiParam(value = "Ending date of order to search for, inclusive. If missing, the starting date is used. Format: yyyy-MM-dd ") @Valid @RequestParam(value = "endingDate", required = false) OffsetDateTime endingDate);
+    ResponseEntity<List<CustomerOrderDto>> searchByComplete(@NotNull @ApiParam(value = "Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format: yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time ", required = true) @Valid @RequestParam(value = "startingDate", required = true) String startingDate, @ApiParam(value = "If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.") @Valid @RequestParam(value = "complete", required = false) Boolean complete, @ApiParam(value = "End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format: yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time ") @Valid @RequestParam(value = "endingDate", required = false) String endingDate);
 
 
     @ApiOperation(value = "search for an order by id", nickname = "searchForOrder", notes = "Retrieve an order by its ID. ", response = CustomerOrderDto.class, tags={  })

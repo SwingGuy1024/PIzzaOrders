@@ -128,7 +128,7 @@ public enum PojoUtility {
     return mapper.readValue(json, new TypeReference<List<T>>() { });
   }
   
-  public static <I, O> List<O> convertList(List<I> inputList) {
+  public static <I, O> List<O> convertList(Collection<I> inputList) {
     return mapper.convertValue(inputList, new TypeReference<List<O>>() { });
   }
 

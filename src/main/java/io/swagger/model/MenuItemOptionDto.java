@@ -21,9 +21,6 @@ public class MenuItemOptionDto   {
   @JsonProperty("name")
   private String name = null;
 
-  @JsonProperty("menuItem")
-  private MenuItemDto menuItem = null;
-
   @JsonProperty("deltaPrice")
   private String deltaPrice = null;
 
@@ -48,27 +45,6 @@ public class MenuItemOptionDto   {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  public MenuItemOptionDto menuItem(MenuItemDto menuItem) {
-    this.menuItem = menuItem;
-    return this;
-  }
-
-   /**
-   * Get menuItem
-   * @return menuItem
-  **/
-  @ApiModelProperty(value = "")
-
-  @Valid
-
-  public MenuItemDto getMenuItem() {
-    return menuItem;
-  }
-
-  public void setMenuItem(MenuItemDto menuItem) {
-    this.menuItem = menuItem;
   }
 
   public MenuItemOptionDto deltaPrice(String deltaPrice) {
@@ -122,14 +98,13 @@ public class MenuItemOptionDto   {
     }
     MenuItemOptionDto menuItemOptionDto = (MenuItemOptionDto) o;
     return Objects.equals(this.name, menuItemOptionDto.name) &&
-        Objects.equals(this.menuItem, menuItemOptionDto.menuItem) &&
         Objects.equals(this.deltaPrice, menuItemOptionDto.deltaPrice) &&
         Objects.equals(this.id, menuItemOptionDto.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, menuItem, deltaPrice, id);
+    return Objects.hash(name, deltaPrice, id);
   }
 
   @Override
@@ -138,7 +113,6 @@ public class MenuItemOptionDto   {
     sb.append("class MenuItemOptionDto {\n");
     
     sb.append("    name: ").append(toIndentedString(name)).append("\n");
-    sb.append("    menuItem: ").append(toIndentedString(menuItem)).append("\n");
     sb.append("    deltaPrice: ").append(toIndentedString(deltaPrice)).append("\n");
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("}");

@@ -1,15 +1,26 @@
 package io.swagger.api;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.GregorianCalendar;
+import java.util.LinkedList;
 import java.util.List;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
+import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
+import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
+import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.disney.miguelmunoz.challenge.util.ResponseUtility;
+import com.disney.miguelmunoz.challenge.util.ReturnableReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
+import io.swagger.model.MenuItemDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +39,10 @@ public class OrderApiController implements OrderApi {
 
   private static final Logger log = LoggerFactory.getLogger(OrderApiController.class);
 
+  public static final long DAY_IN_MILLIS = 24L * 60L * 60L * 1000L;
+  private static final DateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+
   @Autowired
   private final ObjectMapper objectMapper;
 
@@ -35,10 +50,25 @@ public class OrderApiController implements OrderApi {
 
   @Autowired
   private CustomerOrderRepository customerOrderRepository;
+  
+  @Autowired
+  private MenuItemRepository menuItemRepository;
 
-  public OrderApiController(ObjectMapper objectMapper, CustomerOrderRepository repository) {
+
+  public OrderApiController(ObjectMapper objectMapper, MenuItemRepository menuItemRepository, CustomerOrderRepository repository) {
     this.objectMapper = objectMapper;
+    this.menuItemRepository = menuItemRepository;
     this.customerOrderRepository = repository;
+  }
+
+  @Override
+  public ResponseEntity<Void> addMenuItemOptionToOrder(final String orderId, final String menuOptionId) {
+//    try {
+//      CustomerOrder order = customerOrderRepository.findOne(decodeIdString(orderId));
+//    } catch (Exception e) {
+//      return makeGenericErrorResponse(e);
+//    }
+    return null;
   }
 
   @Override
@@ -47,12 +77,17 @@ public class OrderApiController implements OrderApi {
     try {
       confirmNull(orderEntity.getId());
       confirmNull(orderEntity.getCompleteTime());
-      confirmNotNull(orderEntity.getMenuItem());
+      final MenuItem menuItem = orderEntity.getMenuItem();
+      confirmNotNull(menuItem);
       confirmEqual(Boolean.FALSE, orderEntity.getComplete());
 
       orderEntity.setOrderTime(new Date(System.currentTimeMillis()));
       final Date orderTime = orderEntity.getOrderTime();
       log.debug("Pojo set order time: {} = {}", orderTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(orderTime));
+      // We don't use CascadeType.PERSIST, because it throws an exception if the menuItem already exists, claiming it's 
+      // a detached object. So we save it first and re-add it to the entityOrder..
+      MenuItem savedMenuItem = menuItemRepository.save(menuItem);
+      orderEntity.setMenuItem(savedMenuItem);
       CustomerOrder savedOrder = customerOrderRepository.save(orderEntity);
       return makeCreatedResponseWithId(savedOrder.getId().toString());
     } catch (Exception e) {
@@ -91,8 +126,94 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  public ResponseEntity<CreatedResponse> searchByComplete(final OffsetDateTime startingDate, final Boolean complete, final OffsetDateTime endingDate) {
-    return null;
+  public ResponseEntity<List<CustomerOrderDto>> searchByComplete(
+      final String startingDate,
+      final Boolean complete,
+      final String endingDate
+  ) {
+    try {
+      // Records whether it parsed both Date and Time or just Date.
+      ReturnableReference<Boolean> usesTime = new ReturnableReference<>();
+      Date startTime = parseDate(startingDate, null, usesTime); // throws ResponseException
+
+      // works even if usesTime.getValue() is null. (Actually, I never expect it to be null.)
+      boolean timeUsed = Boolean.TRUE.equals(usesTime.getValue());
+
+      // startTime here is the default value. So if endingDate is empty or null, it uses the start date for both
+      // ends of the range. For DateTime search this is useless, but for date-only searches, this limits the search
+      // to a single day.
+      Date endTime = parseDate(endingDate, startTime, usesTime); // throws ResponseException
+
+      // If we only specified a Date for both figures...
+      if (!timeUsed && !usesTime.getValue()) {
+        endTime = new Date(endTime.getTime() + DAY_IN_MILLIS);
+      }
+
+      final Collection<CustomerOrder> results;
+      if (complete == null) {
+        results = customerOrderRepository.findByOrderTimeAfterAndOrderTimeBeforeOrderByOrderTime(startTime, endTime);
+      } else {
+        results = customerOrderRepository.findByOrderTimeAfterAndOrderTimeBeforeAndCompleteOrderByOrderTime(startTime, endTime, complete);
+      }
+      List<CustomerOrderDto> resultDtos = convertCustomerOrderList(results);
+      return makeStatusResponse(HttpStatus.OK, resultDtos);
+    } catch (Exception e) {
+      return makeGenericErrorResponse(e);
+    }
+  }
+
+  private List<CustomerOrderDto> convertCustomerOrderList(final Collection<CustomerOrder> results) {
+    List<CustomerOrderDto> dtoList = new LinkedList<>();
+    for (CustomerOrder order : results) {
+      CustomerOrderDto dto = new CustomerOrderDto();
+      dto.setComplete(order.getComplete());
+      final Date completeTime = order.getCompleteTime();
+      OffsetDateTime completeDateTime = objectMapper.convertValue(completeTime, OffsetDateTime.class);
+      dto.setCompleteTime(completeDateTime);
+      dto.setId(order.getId());
+      OffsetDateTime orderDateTime = objectMapper.convertValue(order.getOrderTime(), OffsetDateTime.class);
+      dto.setOrderTime(orderDateTime);
+      dto.setMenuItem(objectMapper.convertValue(order.getMenuItem(), MenuItemDto.class));
+      dto.setOptions(convertList(order.getOptions()));
+      dtoList.add(dto);
+    }
+    return dtoList;
+  }
+
+  /**
+   * Parse a date.
+   *
+   * @param dateText
+   * @param defaultDate
+   * @param usesTime    Holds true if the date includes the time, false otherwise.
+   * @return
+   * @throws ResponseException
+   */
+  private Date parseDate(String dateText, Date defaultDate, ReturnableReference<Boolean> usesTime) throws ResponseException {
+    // I don't know if a missing date is sent as null or as an empty String, but this gets both cases.
+    if (dateText == null || dateText.isEmpty()) {
+      usesTime.setValue(Boolean.FALSE);
+      if (defaultDate == null) {
+        defaultDate = getCurrentDate();
+      }
+      return defaultDate;
+    }
+    try {
+      usesTime.setValue(Boolean.TRUE);
+      return DATE_TIME_FORMAT.parse(dateText);
+    } catch (ParseException ignored) { }
+    try {
+      usesTime.setValue(Boolean.FALSE);
+      return DATE_FORMAT.parse(dateText);
+    } catch (ParseException ignored) {
+      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Unable to parse: %s", dateText), ignored);
+    }
+  }
+
+  private static Date getCurrentDate() {
+    GregorianCalendar now = new GregorianCalendar();
+    GregorianCalendar today = new GregorianCalendar(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+    return today.getTime();
   }
 
   @Override
@@ -130,5 +251,14 @@ public class OrderApiController implements OrderApi {
 
   List<CustomerOrder> getAllTestOnly() {
     return customerOrderRepository.findAll();
+  }
+  
+  // Used to save orders with different start dates for testing.
+  CustomerOrder saveOrderTestOnly(CustomerOrder order) {
+    return customerOrderRepository.save(order);
+  }
+  
+  Collection<CustomerOrder> findByOrderTimeTestOnly(Date findDate) {
+    return customerOrderRepository.findByOrderTimeAfter(findDate);
   }
 }

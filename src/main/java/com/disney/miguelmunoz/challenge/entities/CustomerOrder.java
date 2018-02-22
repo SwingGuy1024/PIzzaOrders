@@ -53,7 +53,7 @@ public class CustomerOrder {
   // "org.hibernate.loader.MultipleBagFetchException: cannot simultaneously fetch multiple bags"
   // See https://stackoverflow.com/questions/4334970/hibernate-cannot-simultaneously-fetch-multiple-bags
   @SuppressWarnings("WeakerAccess")
-  @Fetch(value = FetchMode.SUBSELECT)
+  @Fetch(FetchMode.SUBSELECT)
   @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
   @JoinTable(
       name = "food_order_to_menu_item_option", 
@@ -112,7 +112,7 @@ public class CustomerOrder {
     this.completeTime = cloneDate(completeTime);
   }
 
-  @OneToOne(cascade = CascadeType.PERSIST)
+  @OneToOne
   @JoinColumn(name = "menu_item_id")
   public MenuItem getMenuItem() {
     return menuItem;
@@ -137,5 +137,17 @@ public class CustomerOrder {
   @Override
   public int hashCode() {
     return (getId() != null) ? getId().hashCode() : 0;
+  }
+
+  @Override
+  public String toString() {
+    return "CustomerOrder{" +
+        "id=" + id +
+        ", options=" + options +
+        ", complete=" + complete +
+        ", orderTime=" + orderTime +
+        ", completeTime=" + completeTime +
+        ", menuItem=" + menuItem +
+        '}';
   }
 }
