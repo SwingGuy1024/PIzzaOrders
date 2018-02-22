@@ -23,12 +23,12 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:52:21.167Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-22T11:14:56.538Z")
 
 @Api(value = "menuItem", description = "the menuItem API")
 public interface MenuItemApi {
 
-    @ApiOperation(value = "Add a MenuItem, with optional MenuItemOptions.", nickname = "addMenuItem", notes = "Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed from the MenuItem API ", response = CreatedResponse.class, tags={  })
+    @ApiOperation(value = "Add a MenuItem, with optional MenuItemOptions.", nickname = "addMenuItem", notes = "Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed by using the MenuItem API. More options may be added later with the /MenuItem/addOption/ API. ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Menu Item Created", response = CreatedResponse.class),
         @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
@@ -39,7 +39,7 @@ public interface MenuItemApi {
     ResponseEntity<CreatedResponse> addMenuItem(@ApiParam(value = "Complete menu item, with MenuItemOptions", required = true) @Valid @RequestBody MenuItemDto menuItem);
 
 
-    @ApiOperation(value = "Add a menuItemOption", nickname = "addMenuItemOption", notes = "Add a MenuItemOption to a MenuItem ", response = CreatedResponse.class, tags={  })
+    @ApiOperation(value = "Add a menuItemOption", nickname = "addMenuItemOption", notes = "Add a MenuItemOption to a MenuItem. ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "MenuItemOption added", response = CreatedResponse.class),
         @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
@@ -59,7 +59,7 @@ public interface MenuItemApi {
     ResponseEntity<Void> deleteOption(@ApiParam(value = "ID of the MenuItemOpton to delete", required = true) @PathVariable("optionId") String optionId);
 
 
-    @ApiOperation(value = "Gets a menuItem by ID", nickname = "getMenuItem", notes = "", response = MenuItemDto.class, tags={  })
+    @ApiOperation(value = "Gets a menuItem by ID", nickname = "getMenuItem", notes = "Gets a MenuItem by its ID.", response = MenuItemDto.class, tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Found", response = MenuItemDto.class),
         @ApiResponse(code = 404, message = "NotFound") })

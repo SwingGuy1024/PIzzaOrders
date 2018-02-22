@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-22T09:29:00.220Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-22T11:14:56.538Z")
 
 @Api(value = "order", description = "the order API")
 public interface OrderApi {
@@ -37,7 +37,7 @@ public interface OrderApi {
     ResponseEntity<CreatedResponse> addMenuItemOptionToOrder(@ApiParam(value = "The id of the customer order", required = true) @PathVariable("order_id") String orderId, @ApiParam(value = "The id of Menu Item Option to add", required = true) @PathVariable("menu_option_id") String menuOptionId);
 
 
-    @ApiOperation(value = "Place an order", nickname = "addOrder", notes = "Place an order for a MenuItem, with a list of MenuItemOptions. ", response = CreatedResponse.class, tags={  })
+    @ApiOperation(value = "Place an order", nickname = "addOrder", notes = "Place an order of a MenuItem, with a list of MenuItemOptions. This creates a new order for a specific MenuItem, with no options yet. ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Order Placed", response = CreatedResponse.class),
         @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
@@ -48,7 +48,7 @@ public interface OrderApi {
     ResponseEntity<CreatedResponse> addOrder(@ApiParam(value = "The contents of the order", required = true) @Valid @RequestBody CustomerOrderDto order);
 
 
-    @ApiOperation(value = "Mark an order completed", nickname = "completeOrder", notes = "Mark an order complete. ", response = CreatedResponse.class, tags={  })
+    @ApiOperation(value = "Mark an order completed", nickname = "completeOrder", notes = "Mark an order complete. A Complete order is an order that has been delivered. ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 202, message = "Order Completed", response = CreatedResponse.class),
         @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
@@ -58,7 +58,7 @@ public interface OrderApi {
     ResponseEntity<CreatedResponse> completeOrder(@ApiParam(value = "The id of the completed order", required = true) @PathVariable("id") String id);
 
 
-    @ApiOperation(value = "delete an order", nickname = "deleteOrder", notes = "Update an order for a MenuItem, with a list of MenuItemOptions. ", response = CreatedResponse.class, tags={  })
+    @ApiOperation(value = "delete an order", nickname = "deleteOrder", notes = "Delete an order. This is not the same as marking it complete. Canceled orders should be deleted. Delivered orders should be marked complete. ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 202, message = "Order Deleted", response = CreatedResponse.class),
         @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })
@@ -68,7 +68,7 @@ public interface OrderApi {
     ResponseEntity<CreatedResponse> deleteOrder(@ApiParam(value = "The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.", required = true) @PathVariable("id") String id);
 
 
-    @ApiOperation(value = "search for an order by completed status and order date, over a date range", nickname = "searchByComplete", notes = "Retrieve an order by its completed status, with a date range. Returns an array of items ", response = CustomerOrderDto.class, responseContainer = "List", tags={  })
+    @ApiOperation(value = "search for an order by completed status and order date, over a date range", nickname = "searchByComplete", notes = "Retrieve an order by its completed status, with a date range. Returns an array of items. If you leave the starting date blank, it will default to the current date. If you leave the ending field blank, it will default to the start date. Both dates are inclusive, so searching for the same day in both fields will search for that day. Leaving the Complete field blank will cause it to search for all orders, regardless of their complete status. Formats for starting and ending dates are yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time. ", response = CustomerOrderDto.class, responseContainer = "List", tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "search results found", response = CustomerOrderDto.class, responseContainer = "List"),
         @ApiResponse(code = 400, message = "bad request", response = CreatedResponse.class),
@@ -76,7 +76,7 @@ public interface OrderApi {
     @RequestMapping(value = "/order/search",
         produces = { "applicaton/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<List<CustomerOrderDto>> searchByComplete(@NotNull @ApiParam(value = "Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format: yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time ", required = true) @Valid @RequestParam(value = "startingDate", required = true) String startingDate, @ApiParam(value = "If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.") @Valid @RequestParam(value = "complete", required = false) Boolean complete, @ApiParam(value = "End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format: yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time ") @Valid @RequestParam(value = "endingDate", required = false) String endingDate);
+    ResponseEntity<List<CustomerOrderDto>> searchByComplete(@NotNull @ApiParam(value = "Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format is yyyy-MM-dd or yyyy-MM-dd HH-mm for a specific time. Except the dash between HH and mm is supposed to be a colon, but I can't show it with the build software I'm using. ", required = true) @Valid @RequestParam(value = "startingDate", required = true) String startingDate, @ApiParam(value = "If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range. ") @Valid @RequestParam(value = "complete", required = false) Boolean complete, @ApiParam(value = "End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format is yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time ") @Valid @RequestParam(value = "endingDate", required = false) String endingDate);
 
 
     @ApiOperation(value = "search for an order by id", nickname = "searchForOrder", notes = "Retrieve an order by its ID. ", response = CustomerOrderDto.class, tags={  })
@@ -90,7 +90,7 @@ public interface OrderApi {
     ResponseEntity<CustomerOrderDto> searchForOrder(@ApiParam(value = "id of the order to search for", required = true) @PathVariable("id") String id);
 
 
-    @ApiOperation(value = "Update an order", nickname = "updateOrder", notes = "Update an order for a MenuItem, with a list of MenuItemOptions. ", response = CreatedResponse.class, tags={  })
+    @ApiOperation(value = "Update an order", nickname = "updateOrder", notes = "Update an order for a MenuItem, with a list of MenuItemOptions. This is one way to add items to an order. This may also be done with the /order/addMenuItemOption/ API. ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
         @ApiResponse(code = 202, message = "Order Updated", response = CreatedResponse.class),
         @ApiResponse(code = 400, message = "Bad Request", response = CreatedResponse.class) })

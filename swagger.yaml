@@ -13,7 +13,7 @@ paths:
     put:
       summary: Add a MenuItem, with optional MenuItemOptions.
       description: |
-        Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed from the MenuItem API
+        Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed by using the MenuItem API. More options may be added later with the /MenuItem/addOption/ API.
       operationId: addMenuItem
       parameters: 
       - in: body
@@ -38,6 +38,7 @@ paths:
   /menuItem/{id}:
     get:
       summary: Gets a menuItem by ID
+      description: Gets a MenuItem by its ID.
       operationId: getMenuItem
       produces:
       - application/json
@@ -59,7 +60,7 @@ paths:
     post:
       summary: Add a menuItemOption
       description: | 
-        Add a MenuItemOption to a MenuItem
+        Add a MenuItemOption to a MenuItem.
       operationId: addMenuItemOption
       parameters:
       - in: path
@@ -108,7 +109,7 @@ paths:
     put:
       summary: Place an order
       description: |
-        Place an order for a MenuItem, with a list of MenuItemOptions.
+        Place an order of a MenuItem, with a list of MenuItemOptions. This creates a new order for a specific MenuItem, with no options yet.
       operationId: addOrder
       consumes:
       - application/json
@@ -133,7 +134,7 @@ paths:
     post:
       summary: Update an order
       description: |
-        Update an order for a MenuItem, with a list of MenuItemOptions.
+        Update an order for a MenuItem, with a list of MenuItemOptions. This is one way to add items to an order. This may also be done with the /order/addMenuItemOption/ API.
       operationId: updateOrder
       consumes:
       - application/json
@@ -160,7 +161,7 @@ paths:
     post:
       summary: Mark an order completed
       description: |
-        Mark an order complete.
+        Mark an order complete. A Complete order is an order that has been delivered.
       operationId: completeOrder
       parameters:
       - in: path
@@ -205,7 +206,7 @@ paths:
     delete:
       summary: delete an order
       description: |
-        Update an order for a MenuItem, with a list of MenuItemOptions.
+        Delete an order. This is not the same as marking it complete. Canceled orders should be deleted. Delivered orders should be marked complete.
       operationId: deleteOrder
       parameters:
       - in: path
@@ -246,13 +247,15 @@ paths:
       responses:
         202:
           description: Order Completed
+          schema:
+            $ref: '#/definitions/CreatedResponse'
         400:
           description: Bad Request
   /order/search:
     get:
       summary: search for an order by completed status and order date, over a date range
       description: |
-        Retrieve an order by its completed status, with a date range. Returns an array of items
+        Retrieve an order by its completed status, with a date range. Returns an array of items. If you leave the starting date blank, it will default to the current date. If you leave the ending field blank, it will default to the start date. Both dates are inclusive, so searching for the same day in both fields will search for that day. Leaving the Complete field blank will cause it to search for all orders, regardless of their complete status. Formats for starting and ending dates are yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time.
       operationId: searchByComplete
       produces:
       - applicaton/json
@@ -261,17 +264,18 @@ paths:
         name: complete
         type: boolean
         required: false
-        description: If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.
+        description: |
+          If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.
       - in: query
         name: startingDate
-        description: |
-          Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format: yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time
         required: true
+        description: |
+          Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format is yyyy-MM-dd or yyyy-MM-dd HH-mm for a specific time. Except the dash between HH and mm is supposed to be a colon, but I can't show it with the build software I'm using.
         type: string
       - in: query
         name: endingDate
         description: |
-          End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format: yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time
+          End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format is yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time
         type: string
         required: false
       responses:
