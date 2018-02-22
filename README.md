@@ -36,6 +36,18 @@ Change default port value in application.properties
 ## Database
 You do not need to launch a database server to run this application. I use an embedded h2 database. This is great for demo purposes, because you don't need to launch a server, and it's a java database, so it runs with very little configuration.
 
+## Assumptions
+
+A Menu item consists of options. Each menu item has a price, as does each option. (Option prices may be zero.) An order consists of a menu item and a list of options.
+
+An order may calculate a price based on the Menu Item's base cost and the options chosen. 
+
+When an order is opened, the time is recorded. (I have no idea if that's useful, but it may help in searching.) At this point, the order may be either canceled or completed. If it's canceled, it's removed from the database. If it's completed, it is marked complete and kept in the database.
+
+Orders may be searched by ID 
+
+I'm not sure if my API is most useful for a UI developer. I prefer to ask the UI developers what they need, then build the API around their needs. That said, I have APIs to define menu items, and add options to them. I have APIs to create an order, to add options to either an order or a MenuItem, and to search for completed or open orders in a given date range.
+
 ## JPA Entities
 
 ### 1. MenuItem
@@ -50,6 +62,7 @@ A Food order is an actual order. It has a final price, a boolean to record when 
 ## Testing
 The testing application properties specify a memory database, so changes get wiped out from test to test. This greatly facilitates testing.
 
+The Controller classes have public method which are called by the server, and package-level methods that are only for testing. All of these package methods are named `xxxXxxxTestOnly` to discourage their use even if somebody puts a class to the right package. 
 
 -----
 
