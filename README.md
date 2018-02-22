@@ -28,7 +28,7 @@ or
 
 ## REST API Documentation
 
-You can view the api documentation in swagger-ui by launching the server, then goint to 
+You can view the api documentation in swagger-ui by launching the server, then go to 
 `http://localhost:8080/NeptuneDreams/CustomerOrders/1.0.0/swagger-ui.html`
 
 Change default port value in application.properties
