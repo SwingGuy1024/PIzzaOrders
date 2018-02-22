@@ -44,3 +44,39 @@ The testing application properties specify a memory database, so changes get wip
 ## Generated classes
 Swagger generates interfaces and classes for the controllers. Whenever I need to regenerate the controller classes, I only copy the interfaces. Since they are generated, I have a strong presumption of making any changes, but there are still cases where I'm not happy with the generated APIs, and working around them is way too much work. So I have made changes to some of them. The problem is that, except for GET operations, the controller methods return a response of type ResponseEntity<Void>. Because of the Void content type, I have no way to return the id of the newly generated value. So I change the response type to ResponseEntity<String>. I wish I didn't have to do this, but it's a pretty small change, so it's managable.
 
+-----
+
+### Coding Questions
+
+**_1. How have you scaled your Java based web applications in the past?_**
+
+The most important task has often been to process high-demand tasks asynchronously. This doesn't work with all tasks, but should be applied wherever it works and is necessary. Careful attention to what data is cached and what caches are turned on is also helpful. 
+ 
+**_2. What is a common OOP design pattern that you have used in your web applications in the past and why?_**
+
+Most useful:
+
+a. Observer/Broadcaster, which allows loose coupling. Lets the data model broadcast changes without knowing anything about who might be listening.
+
+b. Inversion of Control. Reduces dependencies between classes, allowing the classes to be independent of each other, which also makes testing easier.
+
+c. MVC. By separating the data model from the view, the data may be manipulated independently of anything else. Multiple Views listen for changes to the model. The Controller responds to user input, which lead it to make changes to the data model. Greatly simplifies the task of developing user interfaces.
+
+d. Facade. Putting third-party libraries behind a facade is an excellent way to shield developers from the details of the library. This makes it easier to replace the library if a better solution is found. It also makes it easier to fix bugs in the developer's approach to the way the library is used.
+ 
+**_3. How do you discover what is the root cause of a Java OutOfMemoryError?_**
+
+a. Always look at the server log.
+
+b. Use memory-leak features of profilers.
+
+c. Use PhantomReferences to look for memory leaks.
+ 
+**_4. What is your preferred method to perform parallel processing?_**
+
+In Java 8, use a Spliterator. 
+In Java 7 and before, use a Thread Pool and a Blocking Queue.
+ 
+**_5. What is the normal unit test code coverage % of your web applications?_**
+
+About 95%. I aim for 100%, but there are cases where the code can't be reached. For example, I may put in a statement to throw an exception in a case that can't be reached. I do this because future changes to the code may introduce bugs which make the exception reachable. My exception will reveal the new big immediately. The downside is that my exception code can't be executed by a unit test. A good illustration of this is a switch statement on an enum value. If I expect every case of the enum to get handled, I still put a default case, which throws an Exception with a message describing the enum value that was not handled. This way, if somebody adds an enum value, the code will throw an exception instead of silently failing.

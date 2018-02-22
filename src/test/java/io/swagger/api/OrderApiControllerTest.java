@@ -1,12 +1,14 @@
 package io.swagger.api;
 
 import java.util.GregorianCalendar;
+import java.util.LinkedList;
 import java.util.List;
 import com.disney.miguelmunoz.challenge.Application;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
 import io.swagger.model.MenuItemDto;
+import io.swagger.model.MenuItemOptionDto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -108,6 +110,22 @@ public class OrderApiControllerTest {
     assertEquals(HttpStatus.BAD_REQUEST, createResponse.getStatusCode());
     assertThat(createResponse.getBody().getMessage(), containsString("Already Complete"));
 
+    // Test of delete
+    
+    ResponseEntity<CreatedResponse> badDeleteResponse = orderApiController.deleteOrder("BAD_ID");
+    assertBad(badDeleteResponse);
+    
+    ResponseEntity<CreatedResponse> deleteResponse = orderApiController.deleteOrder(idString);
+    assertEquals(HttpStatus.ACCEPTED, deleteResponse.getStatusCode());
+    
+    // Make sure it got deleted.
+    List<CustomerOrder> allOrders = orderApiController.getAllTestOnly();
+    for (CustomerOrder customerOrder: allOrders) {
+      assertNotEquals(idString, customerOrder.getId().toString());
+    }
+    
+    
+    
   }
   
   private void assertCreated(final ResponseEntity<?> responseEntity) {

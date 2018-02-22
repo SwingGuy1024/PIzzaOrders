@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 public enum ResponseUtility {
   ;
   private static final Logger log = LoggerFactory.getLogger(ResponseUtility.class);
-  public static ResponseEntity<Void> makeVoidResponse(Throwable t) {
+  public static <T> ResponseEntity<T> makeGenericResponse(Throwable t) {
     if (t instanceof ResponseException) {
       ResponseException ex = (ResponseException) t;
       final HttpStatus httpStatus = ex.getHttpStatus();
@@ -56,14 +56,10 @@ public enum ResponseUtility {
     return error;
   }
 
-//  public static ResponseEntity<?> makeUnknownProblemResponse(Throwable t) {
-//    final HttpStatus httpStatus
-//  }
-
-  public static ResponseEntity<Void> makeStatusResponse(HttpStatus status) {
+  public static <T> ResponseEntity<T> makeStatusResponse(HttpStatus status) {
     return new ResponseEntity<>(status);
   }
-  
+
   public static ResponseEntity<CreatedResponse> makeStatusResponse(HttpStatus status, String content) {
     final CreatedResponse response = new CreatedResponse();
     response.setBody(content);

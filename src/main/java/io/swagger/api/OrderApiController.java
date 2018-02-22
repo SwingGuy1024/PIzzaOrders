@@ -6,6 +6,7 @@ import java.util.List;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
+import com.disney.miguelmunoz.challenge.util.ResponseUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
@@ -80,7 +81,13 @@ public class OrderApiController implements OrderApi {
 
   @Override
   public ResponseEntity<CreatedResponse> deleteOrder(final String id) {
-    return null;
+    try {
+      final Integer idInt = decodeIdString(id);
+      customerOrderRepository.delete(idInt);
+      return ResponseUtility.makeStatusResponse(HttpStatus.ACCEPTED);
+    } catch (Exception e) {
+      return makeErrorResponse(e);
+    }
   }
 
   @Override
@@ -105,7 +112,7 @@ public class OrderApiController implements OrderApi {
       return new ResponseEntity<>(dto, HttpStatus.OK);
     } catch (Exception e) {
       log.debug(HttpStatus.BAD_REQUEST.toString(), e);
-      return new ResponseEntity<>((CustomerOrderDto) null, HttpStatus.BAD_REQUEST);
+      return ResponseUtility.makeStatusResponse(HttpStatus.BAD_REQUEST);
     }
   }
 

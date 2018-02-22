@@ -115,7 +115,7 @@ public class MenuItemApiController implements MenuItemApi {
       menuItemOptionRepository.delete(itemToDelete);
       return new ResponseEntity<>(HttpStatus.OK);
     } catch (Exception | Error e) {
-      return ResponseUtility.makeVoidResponse(e);
+      return ResponseUtility.makeGenericResponse(e);
     }
   }
 
