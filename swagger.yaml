@@ -296,9 +296,6 @@ definitions:
     properties:
       name:
         type: string
-      menuItem:
-        type: object
-        $ref: '#/definitions/MenuItemDto'
       deltaPrice:
         type: string
         description: Floating point price. Strings are easier to work with.
