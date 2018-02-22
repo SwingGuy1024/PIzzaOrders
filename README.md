@@ -10,39 +10,46 @@ This is an example of building a swagger-enabled server in Java using the Spring
 
 The underlying library integrating swagger to SpringBoot is [springfox](https://github.com/springfox/springfox)  
 
-Start your server as an simple java application  
+Start your server as an simple java application.
 
-You can view the api documentation in swagger-ui by pointing to 
-http://localhost:8080/NeptuneDreams/CustomerOrders/1.0.0/swagger-ui.html 
+This project requires Java 1.8 and Maven 3
+
+To build:
+ 
+`mvn clean install`
+
+To run: 
+
+`mvn spring-boot:run`
+
+or
+
+`java -jar target/miguelmunoz.challenge-0.0.1-SNAPSHOT.jar`
+
+## REST API Documentation
+
+You can view the api documentation in swagger-ui by launching the server, then goint to 
+`http://localhost:8080/NeptuneDreams/CustomerOrders/1.0.0/swagger-ui.html`
 
 Change default port value in application.properties
 
+## Database
+You do not need to launch a database server to run this application. I use an embedded h2 database. This is great for demo purposes, because you don't need to launch a server, and it's a java database, so it runs with very little configuration.
+
 ## JPA Entities
 
-### 1. FoodOption
-This table is a simple editable enumeration of possible options. Each option
-is available for multiple menu items. For example, olives could go on a pizza or a submarine sandwich.
+### 1. MenuItem
+A MenuItem consists of a name, price, and list of MenuItemOptions (below). The list consists of all possible options for this menu item. MenuItem has a One-to-Many relationship with MenuItemOption. It also includes a price.
 
 ### 2. MenuItemOption
-A MenuItemOption links a MenuItem (below) to a Food Option. It also has a delta price, which is the amount the price changes if the guest chooses this option.
+A MenuItemOption adds an option to aMenuItem (below). It also has a delta price, which is the amount the price changes if the guest chooses this option.
 
-### 3. MenuItem
-A MenuItem consists of a name, price, and list of MenuItemOptions. The list consists of all possible options for this menu item. MenuItem has a One-to-Many relationship with MenuItemOption.
-
-### 4. CustomerOrder
+### 3. CustomerOrder
 A Food order is an actual order. It has a final price, a boolean to record when it has been completed and delivered, and an order date and completion date, and a list of MenuItemOptions. Unlike the MenuItem, the list of options is all the chosen options, rather than the available options. Also, unlike MenuItem, the CustomerOrder has a Many-To-Many relationship with MenuItemOption.
-
-### Money
-Monetary values are expressed as Strings in the DTOs, because the toolkit I'm using (swagger) converts floats and doubles to java's Float and Double type, instead of BigDecimal. Using Strings lets me convert them to BigDecimal in a reliable way.
-
-## Database
-I use an embedded h2 database. This is great for demo purposes, because you don't need to launch a server, and it's a java database, so it runs with very little configuration.
 
 ## Testing
 The testing application properties specify a memory database, so changes get wiped out from test to test. This greatly facilitates testing.
 
-## Generated classes
-Swagger generates interfaces and classes for the controllers. Whenever I need to regenerate the controller classes, I only copy the interfaces. Since they are generated, I have a strong presumption of making any changes, but there are still cases where I'm not happy with the generated APIs, and working around them is way too much work. So I have made changes to some of them. The problem is that, except for GET operations, the controller methods return a response of type ResponseEntity<Void>. Because of the Void content type, I have no way to return the id of the newly generated value. So I change the response type to ResponseEntity<String>. I wish I didn't have to do this, but it's a pretty small change, so it's managable.
 
 -----
 
@@ -79,4 +86,4 @@ In Java 7 and before, use a Thread Pool and a Blocking Queue.
  
 **_5. What is the normal unit test code coverage % of your web applications?_**
 
-About 95%. I aim for 100%, but there are cases where the code can't be reached. For example, I may put in a statement to throw an exception in a case that can't be reached. I do this because future changes to the code may introduce bugs which make the exception reachable. My exception will reveal the new big immediately. The downside is that my exception code can't be executed by a unit test. A good illustration of this is a switch statement on an enum value. If I expect every case of the enum to get handled, I still put a default case, which throws an Exception with a message describing the enum value that was not handled. This way, if somebody adds an enum value, the code will throw an exception instead of silently failing.
+About 95%. I aim for 100%, but there are cases where the code can't be reached. For example, I may put in a statement to throw an exception in a case that can't be reached. I do this because future changes to the code may introduce bugs which make the exception reachable. My exception will reveal the new big immediately. The downside is that my exception code can't be executed by a unit test. A good illustration of this is a switch statement on an enum value. If I expect every case of the enum to get handled, I still put a default case, which throws an Exception with a message describing the enum value that was not handled. This way, if somebody adds an enum value with adding a case statement, the switch statement will throw an exception instead of silently failing.
