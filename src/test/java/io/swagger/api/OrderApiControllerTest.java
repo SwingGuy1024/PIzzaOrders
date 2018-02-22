@@ -9,12 +9,14 @@ import java.util.List;
 import com.disney.miguelmunoz.challenge.Application;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
+import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
 import io.swagger.model.MenuItemDto;
+import io.swagger.model.MenuItemOptionDto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -56,7 +58,7 @@ public class OrderApiControllerTest {
   private ObjectMapper mapper;
   
   @Test
-  public void testAddNewOrder() throws ResponseException {
+  public void testAllOrderMethods() throws ResponseException {
     MenuItemDto pizzaMenuItemDto = MenuItemApiControllerTest.createPizzaMenuItem();
     ResponseEntity<CreatedResponse> menuResponse = menuItemApiController.addMenuItem(pizzaMenuItemDto);
     final String pizzaItemId = menuResponse.getBody().getId();
@@ -64,29 +66,29 @@ public class OrderApiControllerTest {
     
     // Test of addOrder()
 
-    CustomerOrderDto dto = new CustomerOrderDto();
+    CustomerOrderDto customerOrderDto = new CustomerOrderDto();
     
     // bad values:
-    dto.setId(5);
-    dto.setCompleteTime(OffsetDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
-    dto.setComplete(Boolean.TRUE);
-    ResponseEntity<CreatedResponse> responseEntity = orderApiController.addOrder(dto);
+    customerOrderDto.setId(5);
+    customerOrderDto.setCompleteTime(OffsetDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
+    customerOrderDto.setComplete(Boolean.TRUE);
+    ResponseEntity<CreatedResponse> responseEntity = orderApiController.addOrder(customerOrderDto);
     assertBad(responseEntity);
 
-    dto.setId(null);
-    responseEntity = orderApiController.addOrder(dto);
+    customerOrderDto.setId(null);
+    responseEntity = orderApiController.addOrder(customerOrderDto);
     assertBad(responseEntity);
     
-    dto.setCompleteTime(null);
-    responseEntity = orderApiController.addOrder(dto);
+    customerOrderDto.setCompleteTime(null);
+    responseEntity = orderApiController.addOrder(customerOrderDto);
     assertBad(responseEntity);
 
-    dto.setMenuItem(pizzaMenuItemDto);
-    responseEntity = orderApiController.addOrder(dto);
+    customerOrderDto.setMenuItem(pizzaMenuItemDto);
+    responseEntity = orderApiController.addOrder(customerOrderDto);
     assertBad(responseEntity);
 
-    dto.setComplete(Boolean.FALSE);
-    responseEntity = orderApiController.addOrder(dto);
+    customerOrderDto.setComplete(Boolean.FALSE);
+    responseEntity = orderApiController.addOrder(customerOrderDto);
     assertCreated(responseEntity);
     String idString = responseEntity.getBody().getId();
 
@@ -173,7 +175,27 @@ public class OrderApiControllerTest {
     deltaDaysSearchTest(dateTimeFormat, 7, 4, 3, -4);
     deltaDaysSearchTest(dateTimeFormat, 6, 3, 3, -3);
     deltaDaysSearchTest(dateTimeFormat, 4, 2, 2, -2);
+    
+    // test of addMenuItemOptionToOrder()
+    
+    Integer orderM5cId = orderM5Complete.getId();
+    Collection<MenuItemOption> options = orderM5Complete.getMenuItem().getAllowedOptions();
+    MenuItemOption option = options.iterator().next();
+    final String menuOptionIdString = option.getId().toString();
 
+    ResponseEntity<CreatedResponse> pizzaResponse = orderApiController.addMenuItemOptionToOrder("bad", menuOptionIdString);
+    assertBad(pizzaResponse);
+    pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), "bad");
+    assertBad(pizzaResponse);
+    pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), "10000");
+    assertBad(pizzaResponse);
+    assertThat(pizzaResponse.getBody().getMessage(), containsString("MenuItemOption not contained in Order"));
+    pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), menuOptionIdString);
+    assertStatus(HttpStatus.ACCEPTED, pizzaResponse);
+    
+    CustomerOrder revisedOrder = orderApiController.findByIdTestOnly(orderM5cId);
+    MenuItemOption revisedOption = revisedOrder.getOptions().iterator().next();
+    assertEquals(option.getId(), revisedOption.getId());
   }
 
   /**

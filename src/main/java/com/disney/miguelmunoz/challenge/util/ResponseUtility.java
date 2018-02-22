@@ -70,9 +70,13 @@ public enum ResponseUtility {
     return new ResponseEntity<>(body, status);
   }
   public static ResponseEntity<CreatedResponse> makeCreatedResponseWithId(String id) {
+    return makeStatusResponseWithId(HttpStatus.CREATED, id);
+  }
+  
+  public static ResponseEntity<CreatedResponse> makeStatusResponseWithId(HttpStatus status, String id) {
     CreatedResponse response = new CreatedResponse();
     response.setId(id);
-    return new ResponseEntity<>(response, HttpStatus.CREATED);
+    return new ResponseEntity<>(response, status);
   }
 
   public static <T> ResponseEntity<T> makeCreatedResponse(T body) {

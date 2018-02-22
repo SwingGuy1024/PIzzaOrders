@@ -11,9 +11,11 @@ import java.util.LinkedList;
 import java.util.List;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
+import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
+import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.disney.miguelmunoz.challenge.util.ResponseUtility;
 import com.disney.miguelmunoz.challenge.util.ReturnableReference;
@@ -53,22 +55,46 @@ public class OrderApiController implements OrderApi {
   
   @Autowired
   private MenuItemRepository menuItemRepository;
+  
+  @Autowired
+  private MenuItemOptionRepository menuItemOptionRepository;
 
-
-  public OrderApiController(ObjectMapper objectMapper, MenuItemRepository menuItemRepository, CustomerOrderRepository repository) {
+  public OrderApiController(
+      ObjectMapper objectMapper, 
+      MenuItemRepository menuItemRepository, 
+      MenuItemOptionRepository menuItemOptionRepository, 
+      CustomerOrderRepository repository
+  ) {
     this.objectMapper = objectMapper;
     this.menuItemRepository = menuItemRepository;
+    this.menuItemOptionRepository = menuItemOptionRepository;
     this.customerOrderRepository = repository;
   }
 
   @Override
-  public ResponseEntity<Void> addMenuItemOptionToOrder(final String orderId, final String menuOptionId) {
-//    try {
-//      CustomerOrder order = customerOrderRepository.findOne(decodeIdString(orderId));
-//    } catch (Exception e) {
-//      return makeGenericErrorResponse(e);
-//    }
-    return null;
+  public ResponseEntity<CreatedResponse> addMenuItemOptionToOrder(final String orderId, final String menuOptionId) {
+    try {
+      CustomerOrder order = customerOrderRepository.findOne(decodeIdString(orderId)); // throws ResponseException
+      MenuItem item = order.getMenuItem();
+      final Integer optionId = decodeIdString(menuOptionId);
+      confirmItemHasOptionId(item, optionId); // throws ResponseException
+      MenuItemOption option = menuItemOptionRepository.findOne(optionId); // throws ResponseException
+      order.getOptions().add(option);
+      CustomerOrder updatedOrder = customerOrderRepository.save(order);
+      
+      return makeStatusResponseWithId(HttpStatus.ACCEPTED, updatedOrder.getId().toString());
+    } catch (Exception e) {
+      return makeErrorResponse(e);
+    }
+  }
+
+  private void confirmItemHasOptionId(final MenuItem item, final Integer menuOptionId) throws ResponseException {
+    for (MenuItemOption option : item.getAllowedOptions()) {
+      if (option.getId().equals(menuOptionId)) {
+        return;
+      }
+    }
+    throw new ResponseException(HttpStatus.BAD_REQUEST, "MenuItemOption not contained in Order's MenuItem"); // String is used in a unit test.
   }
 
   @Override
@@ -260,5 +286,9 @@ public class OrderApiController implements OrderApi {
   
   Collection<CustomerOrder> findByOrderTimeTestOnly(Date findDate) {
     return customerOrderRepository.findByOrderTimeAfter(findDate);
+  }
+  
+  CustomerOrder findByIdTestOnly(Integer id) {
+    return customerOrderRepository.findOne(id);
   }
 }

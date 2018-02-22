@@ -22,19 +22,19 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-22T07:43:34.844Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-22T09:29:00.220Z")
 
 @Api(value = "order", description = "the order API")
 public interface OrderApi {
 
-    @ApiOperation(value = "Add a menuItemOption to the order.", nickname = "addMenuItemOptionToOrder", notes = "Add a menu item option, taken from the Order's menu item, to the specified open order. ", tags={  })
+    @ApiOperation(value = "Add a menuItemOption to the order.", nickname = "addMenuItemOptionToOrder", notes = "Add a menu item option, taken from the Order's menu item, to the specified open order. ", response = CreatedResponse.class, tags={  })
     @ApiResponses(value = { 
-        @ApiResponse(code = 202, message = "Order Completed"),
+        @ApiResponse(code = 202, message = "Order Completed", response = CreatedResponse.class),
         @ApiResponse(code = 400, message = "Bad Request") })
     @RequestMapping(value = "/order/addMenuItemOption/{order_id}/{menu_option_id}",
         produces = { "application/json" }, 
         method = RequestMethod.POST)
-    ResponseEntity<Void> addMenuItemOptionToOrder(@ApiParam(value = "The id of the customer order", required = true) @PathVariable("order_id") String orderId, @ApiParam(value = "The id of Menu Item Option to add", required = true) @PathVariable("menu_option_id") String menuOptionId);
+    ResponseEntity<CreatedResponse> addMenuItemOptionToOrder(@ApiParam(value = "The id of the customer order", required = true) @PathVariable("order_id") String orderId, @ApiParam(value = "The id of Menu Item Option to add", required = true) @PathVariable("menu_option_id") String menuOptionId);
 
 
     @ApiOperation(value = "Place an order", nickname = "addOrder", notes = "Place an order for a MenuItem, with a list of MenuItemOptions. ", response = CreatedResponse.class, tags={  })
