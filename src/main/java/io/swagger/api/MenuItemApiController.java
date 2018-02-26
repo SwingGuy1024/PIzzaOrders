@@ -20,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
@@ -51,6 +53,9 @@ public class MenuItemApiController implements MenuItemApi {
   }
 
   @Override
+  @RequestMapping(value = "/menuItem/addOption/{menuItemId}",
+      produces = {"application/json"},
+      method = RequestMethod.POST)
   public ResponseEntity<CreatedResponse> addMenuItemOption(
       @PathVariable("menuItemId") String menuItemId, 
       @Valid @RequestBody MenuItemOptionDto optionDto
@@ -60,6 +65,7 @@ public class MenuItemApiController implements MenuItemApi {
       MenuItemOption option = objectMapper.convertValue(optionDto, MenuItemOption.class);
       Integer itemId = decodeIdString(menuItemId); // throws ResponseException
       final MenuItem menuItem = menuItemRepository.findOne(itemId);
+      confirmNotNull(menuItem, itemId);
       option.setMenuItem(menuItem);
       MenuItemOption savedOpton = menuItemOptionRepository.save(option);
       return makeCreatedResponseWithId(savedOpton.getId().toString());
@@ -69,6 +75,10 @@ public class MenuItemApiController implements MenuItemApi {
   }
 
   @Override
+  @RequestMapping(value = "/menuItem",
+      produces = {"application/json"},
+      consumes = {"application/json"},
+      method = RequestMethod.PUT)
   public ResponseEntity<CreatedResponse> addMenuItem(@Valid @RequestBody MenuItemDto menuItemDto) {
     try {
       for (MenuItemOptionDto option : skipNull(menuItemDto.getAllowedOptions())) {
@@ -98,6 +108,9 @@ public class MenuItemApiController implements MenuItemApi {
   }
 
   @Override
+  @RequestMapping(value = "/menuItem/deleteOption/{optionId}",
+      produces = {"application/json"},
+      method = RequestMethod.DELETE)
   public ResponseEntity<Void> deleteOption(@PathVariable("optionId") String optionId) {
     try {
       Integer id = decodeIdString(optionId);
@@ -120,13 +133,19 @@ public class MenuItemApiController implements MenuItemApi {
   }
 
   @Override
-  public ResponseEntity<MenuItemDto> getMenuItem(final Integer id) {
-    MenuItem menuItem = menuItemRepository.findOne(id);
-    if (menuItem == null) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+  @RequestMapping(value = "/menuItem/{id}", produces = {"application/json"}, method = RequestMethod.GET)
+  public ResponseEntity<MenuItemDto> getMenuItem(
+      @PathVariable("id") 
+      final Integer id) {
+    MenuItemDto dto = null;
+    try {
+      MenuItem menuItem = menuItemRepository.findOne(id);
+      confirmNotNull(menuItem, id);
+      dto = objectMapper.convertValue(menuItem, MenuItemDto.class);
+      return new ResponseEntity<>(dto, HttpStatus.OK);
+    } catch (ResponseException e) {
+      return ResponseUtility.makeGenericErrorResponse(e);
     }
-    MenuItemDto dto = objectMapper.convertValue(menuItem, MenuItemDto.class);
-    return new ResponseEntity<>(dto, HttpStatus.OK);
   }
 
   ////// Package-leve methods for unit tests only! //////

@@ -29,6 +29,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.threeten.bp.OffsetDateTime;
 
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
@@ -72,7 +75,13 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  public ResponseEntity<CreatedResponse> addMenuItemOptionToOrder(final String orderId, final String menuOptionId) {
+  @RequestMapping(value = "/order/addMenuItemOption/{order_id}/{menu_option_id}",
+      produces = {"application/json"},
+      method = RequestMethod.POST)
+  public ResponseEntity<CreatedResponse> addMenuItemOptionToOrder(
+      @PathVariable("order_id") final String orderId, 
+      @PathVariable("menu_option_id")final String menuOptionId
+  ) {
     try {
       CustomerOrder order = customerOrderRepository.findOne(decodeIdString(orderId)); // throws ResponseException
       MenuItem item = order.getMenuItem();
@@ -98,6 +107,10 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
+  @RequestMapping(value = "/order",
+      produces = {"application/json"},
+      consumes = {"application/json"},
+      method = RequestMethod.PUT)
   public ResponseEntity<CreatedResponse> addOrder(CustomerOrderDto order) {
     CustomerOrder orderEntity = makeCustomerOrder(order);
     try {
@@ -122,7 +135,10 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  public ResponseEntity<CreatedResponse> completeOrder(final String id) {
+  @RequestMapping(value = "/order/complete/{id}",
+      produces = {"application/json"},
+      method = RequestMethod.POST)
+  public ResponseEntity<CreatedResponse> completeOrder(@PathVariable("id") final String id) {
     try {
       CustomerOrder order = customerOrderRepository.findOne(decodeIdString(id));
       confirmNotNull(order);
@@ -141,7 +157,10 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  public ResponseEntity<CreatedResponse> deleteOrder(final String id) {
+  @RequestMapping(value = "/order/{id}",
+      produces = {"application/json"},
+      method = RequestMethod.DELETE)
+  public ResponseEntity<CreatedResponse> deleteOrder(@PathVariable("id") final String id) {
     try {
       final Integer idInt = decodeIdString(id);
       customerOrderRepository.delete(idInt);
@@ -152,6 +171,9 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
+  @RequestMapping(value = "/order/search",
+      produces = {"applicaton/json"},
+      method = RequestMethod.GET)
   public ResponseEntity<List<CustomerOrderDto>> searchByComplete(
       final String startingDate,
       final Boolean complete,
@@ -243,7 +265,10 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  public ResponseEntity<CustomerOrderDto> searchForOrder(final String id) {
+  @RequestMapping(value = "/order/{id}",
+      produces = {"applicaton/json"},
+      method = RequestMethod.GET)
+  public ResponseEntity<CustomerOrderDto> searchForOrder(@PathVariable("id") final String id) {
     try {
       CustomerOrder order = customerOrderRepository.findOne(decodeIdString(id));
       SimpleDateFormat format = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
@@ -264,6 +289,10 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
+  @RequestMapping(value = "/order",
+      produces = {"application/json"},
+      consumes = {"application/json"},
+      method = RequestMethod.POST)
   public ResponseEntity<CreatedResponse> updateOrder(final CustomerOrderDto order) {
     return null;
   }

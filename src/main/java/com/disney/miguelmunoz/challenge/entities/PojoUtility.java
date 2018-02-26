@@ -99,13 +99,20 @@ public enum PojoUtility {
     }
   }
 
+  public static <T> T confirmNotNull(T object, Object id) throws ResponseException {
+    if (object == null) {
+      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Missing object at id %s", id));
+    }
+    return object;
+  }
+
   public static <T> T confirmNotNull(T object) throws ResponseException {
     if (object == null) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, "Missing object");
     }
     return object;
   }
-  
+
   public static void confirmNull(Object object) throws ResponseException {
     if (object != null) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, "non-null value");
