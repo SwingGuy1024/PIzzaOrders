@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
-import org.hibernate.Hibernate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +77,7 @@ public class MenuItemApiControllerTest {
     ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
     assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
     CreatedResponse body = responseEntity.getBody();
-    Integer id = decodeIdString(body.getId());
+    Integer id = confirmAndDecodeInteger(body.getId());
     if (id != null) {
       MenuItem item = menuItemApiController.getMenuItemTestOnly(id);
       assertEquals("0.50", item.getItemPrice().toString());
@@ -132,7 +131,7 @@ public class MenuItemApiControllerTest {
     ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
     CreatedResponse body = responseEntity.getBody();
     System.out.printf("Body: <%s>%n", body);
-    Integer id = decodeIdString(body.getId());
+    Integer id = confirmAndDecodeInteger(body.getId());
     
     MenuItem item = menuItemApiController.getMenuItemTestOnly(id);
     List<String> nameList = new LinkedList<>();
@@ -146,7 +145,7 @@ public class MenuItemApiControllerTest {
     assertEquals(HttpStatus.BAD_REQUEST, badResponseOne.getStatusCode());
 
     ResponseEntity<Void> badResponseTwo = menuItemApiController.deleteOption("100000");
-    assertEquals(HttpStatus.BAD_REQUEST, badResponseTwo.getStatusCode());
+    assertEquals(HttpStatus.NOT_FOUND, badResponseTwo.getStatusCode());
 
     MenuItemOption removedOption = item.getAllowedOptions().iterator().next();
     String removedName = removedOption.getName();

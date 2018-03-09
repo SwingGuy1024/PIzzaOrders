@@ -65,7 +65,7 @@ public interface OrderApi {
     @RequestMapping(value = "/order/{id}",
         produces = { "application/json" }, 
         method = RequestMethod.DELETE)
-    ResponseEntity<CreatedResponse> deleteOrder(@ApiParam(value = "The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.", required = true) @PathVariable("id") String id);
+    ResponseEntity<Void> deleteOrder(@ApiParam(value = "The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.", required = true) @PathVariable("id") String id);
 
 
     @ApiOperation(value = "search for an order by completed status and order date, over a date range", nickname = "searchByComplete", notes = "Retrieve an order by its completed status, with a date range. Returns an array of items. If you leave the starting date blank, it will default to the current date. If you leave the ending field blank, it will default to the start date. Both dates are inclusive, so searching for the same day in both fields will search for that day. Leaving the Complete field blank will cause it to search for all orders, regardless of their complete status. Formats for starting and ending dates are yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time. ", response = CustomerOrderDto.class, responseContainer = "List", tags={  })

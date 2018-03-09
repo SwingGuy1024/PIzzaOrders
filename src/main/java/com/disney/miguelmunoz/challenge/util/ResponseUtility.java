@@ -14,80 +14,117 @@ import org.springframework.http.ResponseEntity;
  *
  * @author Miguel Mu\u00f1oz
  */
+@SuppressWarnings("HardCodedStringLiteral")
 public enum ResponseUtility {
   ;
   private static final Logger log = LoggerFactory.getLogger(ResponseUtility.class);
-  public static <T> ResponseEntity<T> makeGenericErrorResponse(Throwable t) {
-    if (t instanceof ResponseException) {
-      ResponseException ex = (ResponseException) t;
-      final HttpStatus httpStatus = ex.getHttpStatus();
-      log.debug(httpStatus.toString(), ex);
-      return new ResponseEntity<>(httpStatus);
-    }
-    log.debug(t.getMessage(), t);
-    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-  }
-  
-  public static ResponseEntity<CreatedResponse> makeErrorResponse(Throwable t) {
-    if (t instanceof ResponseException) {
-      ResponseException ex = (ResponseException) t;
-      final HttpStatus httpStatus = ex.getHttpStatus();
-      log.debug(httpStatus.toString(), ex);
-      return new ResponseEntity<>(makeError(ex), httpStatus);
-    }
+
+  public static ResponseEntity<CreatedResponse> makeGenericErrorResponse(RuntimeException t) {
     log.debug(t.getMessage(), t);
     return new ResponseEntity<>(makeError(t), HttpStatus.BAD_REQUEST);
   }
   
-  private static CreatedResponse makeError(Throwable t) {
+  public static ResponseEntity<?> makeErrorResponse(ResponseException ex) {
+    final HttpStatus httpStatus = ex.getHttpStatus();
+    log.debug(httpStatus.toString(), ex);
+    return new ResponseEntity<>(makeErrorFromResponseException(ex), httpStatus);
+  }
+
+  private static CreatedResponse makeErrorFromResponseException(ResponseException ex) {
+    HttpStatus status = ex.getHttpStatus();
     CreatedResponse error = new CreatedResponse();
-    HttpStatus status;
-    if (t instanceof ResponseException) {
-      ResponseException ex = (ResponseException) t;
-      status = ex.getHttpStatus();
-      error.setHttpStatus(status.value());
-      error.setMessage(String.format("%s: %s", status.getReasonPhrase(), t.getMessage()));
-    } else {
-      status = HttpStatus.BAD_REQUEST;
-      error.setHttpStatus(status.value());
-      error.setMessage(t.getMessage());
-    }
+    error.setHttpStatus(status.value());
+    error.setMessage(String.format("%s: %s", status.getReasonPhrase(), ex.getMessage()));
+    log.debug(String.format("%s: %s", status, error.getMessage()), ex);
+    return error;
+  }
+
+  private static CreatedResponse makeError(RuntimeException t) {
+    CreatedResponse error = new CreatedResponse();
+    HttpStatus status = HttpStatus.BAD_REQUEST;
+    error.setHttpStatus(status.value());
+    error.setMessage(t.getMessage());
     log.debug(String.format("%s: %s", status, error.getMessage()), t);
     return error;
   }
 
-  public static <T> ResponseEntity<T> makeStatusResponse(HttpStatus status) {
-    return new ResponseEntity<>(status);
-  }
-
-  public static ResponseEntity<CreatedResponse> makeStatusResponse(HttpStatus status, String content) {
-    final CreatedResponse response = new CreatedResponse();
-    response.setBody(content);
-    return new ResponseEntity<>(response, status);
-  }
-
-  public static <T> ResponseEntity<T> makeStatusResponse(HttpStatus status, T body) {
-    return new ResponseEntity<>(body, status);
-  }
-  public static ResponseEntity<CreatedResponse> makeCreatedResponseWithId(String id) {
-    return makeStatusResponseWithId(HttpStatus.CREATED, id);
-  }
-  
-  public static ResponseEntity<CreatedResponse> makeStatusResponseWithId(HttpStatus status, String id) {
+  public static CreatedResponse buildCreatedResponseWithId(String id) {
     CreatedResponse response = new CreatedResponse();
     response.setId(id);
-    return new ResponseEntity<>(response, status);
+    return response;
   }
 
-  public static <T> ResponseEntity<T> makeCreatedResponse(T body) {
-    return new ResponseEntity<>(body, HttpStatus.CREATED);
+  /**
+   * Serve the data, using HttpStatus.CREATED as the response if successful. This method delegates the work to serve().
+   * @param method The service method that does the work of the service, and returns an instance of type T
+   * @param <T> The return type
+   * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
+   * @see #serve(HttpStatus, ServiceMethod) 
+   * @see ServiceMethod#doService() 
+   */
+  public static <T> ResponseEntity<T> serveCreated(ServiceMethod<T> method) {
+    assert method != null;
+    return serve(HttpStatus.CREATED, method);
   }
 
-  private static String createMessage(ResponseException ex) {
-    return String.format("{\"message\": \"%s\", \"httpStatus\": \"%s\"}", ex.getMessage(), ex.getHttpStatus());
+  /**
+   * Serve the data, using HttpStatus.OK as the response if successful. This method delegates the work to serve().
+   *
+   * @param method The service method that does the work of the service, and returns an instance of type T
+   * @param <T>    The return type
+   * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
+   * @see #serve(HttpStatus, ServiceMethod)
+   * @see ServiceMethod#doService()
+   */
+  public static <T> ResponseEntity<T> serveOK(ServiceMethod<T> method) {
+    return serve(HttpStatus.OK, method);
   }
 
-  private static String createMessage(Throwable ex) {
-    return String.format("{\"message\": \"%s\", \"httpStatus\": \"%s\"}", ex.getMessage(), HttpStatus.BAD_REQUEST);
+  /**
+   * Serve the data, specifying the HttpStatus to be used if successful, and a ServiceMethod to execute, which 
+   * will usually be written as a lambda expression by the calling method. This will call the ServiceMethod's
+   * doService() method inside a try/catch block. If doService() completes successfully, this method will return
+   * the result packed inside a ResponseEntity object, using the specified successStatus. If doService throws an 
+   * Exception, this method will return a ResponseEntity with the proper error HttpStatus and error message.
+   * <p/>
+   * Since the doService() method is declared to return a ResponseException, the provided lambda expression need only
+   * throw a ResponseException on failure. The error handling portion of this method will use the HttpStatus specified
+   * in the ResponseException to generate the ResponseEntity.
+   * <p/>
+   * This allows the developer to implement functional part of the service method inside a lambda expression without 
+   * bothering with the boilerplate code used to package the successful response or handle any error.
+   * <p/>
+   * <strong>Example:</strong><br>
+   * <pre>
+   *   {@literal @Override}
+   *   {@literal @RequestMapping}(value = "/menuItem/{id}", produces = {"application/json"}, method = RequestMethod.GET)
+   *   public ResponseEntity{@literal <MenuItemDto>} getMenuItem(@PathVariable("id") final Integer id) {
+   *     return serve(HttpStatus.OK, () -> {
+   *       MenuItem menuItem = menuItemRepository.findOne(id);
+   *       confirmNotNull(menuItem, id); // throws ResponseException if null
+   *       MenuItemDto dto = objectMapper.convertValue(menuItem, MenuItemDto.class);
+   *       return dto;
+   *     });
+   *   }
+   * </pre>
+   * @param successStatus The status to use if the ServiceMethod's doService() method (the lambda expression) completes
+   *                      successfully.
+   * @param method The service method that does the work of the service, and returns an instance of type T
+   * @param <T> The return type. 
+   * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
+   * @see ServiceMethod#doService() 
+   */
+  public static <T> ResponseEntity<T> serve(HttpStatus successStatus, ServiceMethod<T> method) {
+    assert method != null;
+    try {
+      // All of the work of the service goes into the method.doService() implementation.
+      return new ResponseEntity<>(method.doService(), successStatus);
+    } catch (ResponseException e) {
+      //noinspection unchecked
+      return (ResponseEntity<T>) makeErrorResponse(e);
+    } catch (RuntimeException re) {
+      //noinspection unchecked
+      return (ResponseEntity<T>) makeGenericErrorResponse(re);
+    }
   }
 }

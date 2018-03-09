@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
@@ -17,7 +18,6 @@ import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
-import com.disney.miguelmunoz.challenge.util.ResponseUtility;
 import com.disney.miguelmunoz.challenge.util.ReturnableReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
@@ -37,8 +37,9 @@ import org.threeten.bp.OffsetDateTime;
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
 
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
+//@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
 
+@SuppressWarnings({"HardcodedFileSeparator", "SimplifiableAnnotation", "CallToNumericToString"})
 @Controller
 public class OrderApiController implements OrderApi {
 
@@ -48,20 +49,15 @@ public class OrderApiController implements OrderApi {
   private static final DateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
   private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-  @Autowired
   private final ObjectMapper objectMapper;
 
-//  private final HttpServletRequest request;
-
-  @Autowired
   private CustomerOrderRepository customerOrderRepository;
   
-  @Autowired
   private MenuItemRepository menuItemRepository;
   
-  @Autowired
   private MenuItemOptionRepository menuItemOptionRepository;
 
+  @Autowired
   public OrderApiController(
       ObjectMapper objectMapper, 
       MenuItemRepository menuItemRepository, 
@@ -82,28 +78,28 @@ public class OrderApiController implements OrderApi {
       @PathVariable("order_id") final String orderId, 
       @PathVariable("menu_option_id")final String menuOptionId
   ) {
-    try {
-      CustomerOrder order = customerOrderRepository.findOne(decodeIdString(orderId)); // throws ResponseException
+    return serve(HttpStatus.ACCEPTED, () -> {
+      CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(orderId)); // throws ResponseException
+      confirmNotNull(order, orderId);
       MenuItem item = order.getMenuItem();
-      final Integer optionId = decodeIdString(menuOptionId);
+      final Integer optionId = confirmAndDecodeInteger(menuOptionId);
       confirmItemHasOptionId(item, optionId); // throws ResponseException
       MenuItemOption option = menuItemOptionRepository.findOne(optionId); // throws ResponseException
       order.getOptions().add(option);
       CustomerOrder updatedOrder = customerOrderRepository.save(order);
-      
-      return makeStatusResponseWithId(HttpStatus.ACCEPTED, updatedOrder.getId().toString());
-    } catch (Exception e) {
-      return makeErrorResponse(e);
-    }
+
+      return buildCreatedResponseWithId(updatedOrder.getId().toString());
+    });
   }
 
   private void confirmItemHasOptionId(final MenuItem item, final Integer menuOptionId) throws ResponseException {
     for (MenuItemOption option : item.getAllowedOptions()) {
-      if (option.getId().equals(menuOptionId)) {
+      if (Objects.equals(option.getId(), menuOptionId)) {
         return;
       }
     }
-    throw new ResponseException(HttpStatus.BAD_REQUEST, "MenuItemOption not contained in Order's MenuItem"); // String is used in a unit test.
+    //noinspection ConstantConditions
+    confirmNotNull(null, menuOptionId); // Error String is used in a unit test.
   }
 
   @Override
@@ -112,12 +108,12 @@ public class OrderApiController implements OrderApi {
       consumes = {"application/json"},
       method = RequestMethod.PUT)
   public ResponseEntity<CreatedResponse> addOrder(CustomerOrderDto order) {
-    CustomerOrder orderEntity = makeCustomerOrder(order);
-    try {
+    return serveCreated(() -> {
+      CustomerOrder orderEntity = makeCustomerOrder(order);
       confirmNull(orderEntity.getId());
       confirmNull(orderEntity.getCompleteTime());
       final MenuItem menuItem = orderEntity.getMenuItem();
-      confirmNotNull(menuItem);
+      confirmNeverNull(menuItem);
       confirmEqual(Boolean.FALSE, orderEntity.getComplete());
 
       orderEntity.setOrderTime(new Date(System.currentTimeMillis()));
@@ -128,10 +124,8 @@ public class OrderApiController implements OrderApi {
       MenuItem savedMenuItem = menuItemRepository.save(menuItem);
       orderEntity.setMenuItem(savedMenuItem);
       CustomerOrder savedOrder = customerOrderRepository.save(orderEntity);
-      return makeCreatedResponseWithId(savedOrder.getId().toString());
-    } catch (Exception e) {
-      return makeErrorResponse(e);
-    }
+      return buildCreatedResponseWithId(savedOrder.getId().toString());
+    });
   }
 
   @Override
@@ -139,9 +133,9 @@ public class OrderApiController implements OrderApi {
       produces = {"application/json"},
       method = RequestMethod.POST)
   public ResponseEntity<CreatedResponse> completeOrder(@PathVariable("id") final String id) {
-    try {
-      CustomerOrder order = customerOrderRepository.findOne(decodeIdString(id));
-      confirmNotNull(order);
+    return serve(HttpStatus.ACCEPTED, () -> {
+      CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(id));
+      confirmNotNull(order, id);
       confirmEqual("Already Complete", Boolean.FALSE, order.getComplete()); // Test searches for this String.
       order.setComplete(Boolean.TRUE);
       final Date completeTime = new Date(System.currentTimeMillis());
@@ -150,41 +144,39 @@ public class OrderApiController implements OrderApi {
       Date cTime = order.getCompleteTime();
       log.debug("Pojo Complete Time: {} = {}", cTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(cTime));
       customerOrderRepository.save(order);
-      return new ResponseEntity<>(HttpStatus.ACCEPTED);
-    } catch (Exception e) {
-      return makeErrorResponse(e);
-    }
+      return new CreatedResponse();
+    });
   }
 
   @Override
   @RequestMapping(value = "/order/{id}",
       produces = {"application/json"},
       method = RequestMethod.DELETE)
-  public ResponseEntity<CreatedResponse> deleteOrder(@PathVariable("id") final String id) {
-    try {
-      final Integer idInt = decodeIdString(id);
+  public ResponseEntity<Void> deleteOrder(@PathVariable("id") final String id) {
+    return serve(HttpStatus.ACCEPTED, () -> {
+      final Integer idInt = confirmAndDecodeInteger(id);
       customerOrderRepository.delete(idInt);
-      return ResponseUtility.makeStatusResponse(HttpStatus.ACCEPTED);
-    } catch (Exception e) {
-      return makeErrorResponse(e);
-    }
+      return (Void) null;
+    });
   }
 
   @Override
   @RequestMapping(value = "/order/search",
-      produces = {"applicaton/json"},
+      produces = {"application/json"},
       method = RequestMethod.GET)
   public ResponseEntity<List<CustomerOrderDto>> searchByComplete(
       final String startingDate,
       final Boolean complete,
       final String endingDate
   ) {
-    try {
+    return serveOK(() -> {
       // Records whether it parsed both Date and Time or just Date.
       ReturnableReference<Boolean> usesTime = new ReturnableReference<>();
       Date startTime = parseDate(startingDate, null, usesTime); // throws ResponseException
 
       // works even if usesTime.getValue() is null. (Actually, I never expect it to be null.)
+      //noinspection BooleanVariableAlwaysNegated
+      @SuppressWarnings("EqualsReplaceableByObjectsCall")
       boolean timeUsed = Boolean.TRUE.equals(usesTime.getValue());
 
       // startTime here is the default value. So if endingDate is empty or null, it uses the start date for both
@@ -203,11 +195,8 @@ public class OrderApiController implements OrderApi {
       } else {
         results = customerOrderRepository.findByOrderTimeAfterAndOrderTimeBeforeAndCompleteOrderByOrderTime(startTime, endTime, complete);
       }
-      List<CustomerOrderDto> resultDtos = convertCustomerOrderList(results);
-      return makeStatusResponse(HttpStatus.OK, resultDtos);
-    } catch (Exception e) {
-      return makeGenericErrorResponse(e);
-    }
+      return convertCustomerOrderList(results);
+    });
   }
 
   private List<CustomerOrderDto> convertCustomerOrderList(final Collection<CustomerOrder> results) {
@@ -229,17 +218,17 @@ public class OrderApiController implements OrderApi {
   }
 
   /**
-   * Parse a date.
+   * Parse a date. First tries DATE_TIME_FORMAT; then, if that fails, tries DATE_FORMAT.
    *
-   * @param dateText
-   * @param defaultDate
+   * @param dateText The date as text
+   * @param defaultDate The default Date to use if dateText is null or empty. If null, uses the value of getCurrentDate()
    * @param usesTime    Holds true if the date includes the time, false otherwise.
-   * @return
-   * @throws ResponseException
+   * @return The Date specified in the DateText.
+   * @throws ResponseException BAD_REQUEST if it's unable to parse the dateText.
    */
   private Date parseDate(String dateText, Date defaultDate, ReturnableReference<Boolean> usesTime) throws ResponseException {
     // I don't know if a missing date is sent as null or as an empty String, but this gets both cases.
-    if (dateText == null || dateText.isEmpty()) {
+    if ((dateText == null) || dateText.isEmpty()) {
       usesTime.setValue(Boolean.FALSE);
       if (defaultDate == null) {
         defaultDate = getCurrentDate();
@@ -253,8 +242,8 @@ public class OrderApiController implements OrderApi {
     try {
       usesTime.setValue(Boolean.FALSE);
       return DATE_FORMAT.parse(dateText);
-    } catch (ParseException ignored) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Unable to parse: %s", dateText), ignored);
+    } catch (ParseException ex) {
+      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Unable to parse: %s", dateText), ex);
     }
   }
 
@@ -266,11 +255,11 @@ public class OrderApiController implements OrderApi {
 
   @Override
   @RequestMapping(value = "/order/{id}",
-      produces = {"applicaton/json"},
+      produces = {"application/json"},
       method = RequestMethod.GET)
   public ResponseEntity<CustomerOrderDto> searchForOrder(@PathVariable("id") final String id) {
-    try {
-      CustomerOrder order = customerOrderRepository.findOne(decodeIdString(id));
+    return serveOK(() -> {
+      CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(id));
       SimpleDateFormat format = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
       final Date orderTime = order.getOrderTime();
       if (orderTime != null) {
@@ -280,12 +269,8 @@ public class OrderApiController implements OrderApi {
       if (completeTime != null) {
         log.info("Pojo Compl time: {} = {}", completeTime, format.format(completeTime));
       }
-      CustomerOrderDto dto = objectMapper.convertValue(order, CustomerOrderDto.class);
-      return new ResponseEntity<>(dto, HttpStatus.OK);
-    } catch (Exception e) {
-      log.debug(HttpStatus.BAD_REQUEST.toString(), e);
-      return ResponseUtility.makeStatusResponse(HttpStatus.BAD_REQUEST);
-    }
+      return objectMapper.convertValue(order, CustomerOrderDto.class);
+    });
   }
 
   @Override
@@ -302,7 +287,7 @@ public class OrderApiController implements OrderApi {
   }
 
 
-  ////// Package-leve methods for unit tests only! //////
+  ////// Package-level methods for unit tests only! //////
 
   List<CustomerOrder> getAllTestOnly() {
     return customerOrderRepository.findAll();

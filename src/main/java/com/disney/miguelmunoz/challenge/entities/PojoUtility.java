@@ -19,13 +19,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
 /**
+ * By convention, all methods that may throw a ResponseException begin with the word confirm
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 2/11/18
  * <p>Time: 10:26 PM
  *
  * @author Miguel Mu\u00f1oz
  */
-@SuppressWarnings("UnusedReturnValue")
+@SuppressWarnings({"UnusedReturnValue", "HardCodedStringLiteral"})
 public enum PojoUtility {
   ;
 
@@ -35,8 +36,9 @@ public enum PojoUtility {
   private static final DateFormat timeFormat = new SimpleDateFormat(TIME_FORMAT, Locale.UK);
 
   /**
-   * Clones the date. If the date is null, returns null. (Doesn't actually call clone().)
-   * @param theDate The date to clone
+   * Clones the date. If the date is null, returns null. (Doesn't actually call clone().) This is for Date values
+   * that are allowed to be null, so it may return null. Never throws a NullPointerException.
+   * @param theDate The Date to clone
    * @return A clone of the specified Date.
    */
   public static Date cloneDate(Date theDate) {
@@ -74,7 +76,7 @@ public enum PojoUtility {
    * @return the id as a Integer value
    * @throws ResponseException if id is null or is not readable as a long value, throws a Bad Request response.
    */
-  public static Integer decodeIdString(final String id) throws ResponseException {
+  public static Integer confirmAndDecodeInteger(final String id) throws ResponseException {
     try {
       @SuppressWarnings("argument.type.incompatible") final Integer longValue = Integer.valueOf(id);
       return longValue; // throws NumberFormatException on null
@@ -90,7 +92,7 @@ public enum PojoUtility {
    * @return the id as a Long value
    * @throws ResponseException if id is null or is not readable as a long value, throws a Bad Request response.
    */
-  public static Long decodeLongIdString(final String id) throws ResponseException {
+  public static Long confirmAndDecodeLong(final String id) throws ResponseException {
     try {
       @SuppressWarnings("argument.type.incompatible") final Long longValue = Long.valueOf(id);
       return longValue; // throws NumberFormatException on null
@@ -99,14 +101,30 @@ public enum PojoUtility {
     }
   }
 
-  public static <T> T confirmNotNull(T object, Object id) throws ResponseException {
-    if (object == null) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Missing object at id %s", id));
+  /**
+   * Use when an entity was not found in the database at the specified id. 
+   * @param entity The entity to test.
+   * @param id The id, used to generate a useful error message
+   * @param <T> The type of the entity
+   * @return entity, if it's not null
+   * @throws ResponseException if entity is null, with status of NOT_FOUND(404)
+   */
+  public static <T> T confirmNotNull(T entity, Object id) throws ResponseException {
+    if (entity == null) {
+      throw new ResponseException(HttpStatus.NOT_FOUND, String.format("Missing object at id %s", id));
     }
-    return object;
+    return entity;
   }
 
-  public static <T> T confirmNotNull(T object) throws ResponseException {
+  /**
+   * Use when a non-entity object should not be null. Returns a BadRequest (400). If an entity is null, you should use
+   * confirmNotNull(T object, Object id), which return a NOT_FOUND (404).
+   * @param object The non-entity object to test.
+   * @param <T> The object type
+   * @return object, only if it's not null
+   * @throws ResponseException if object is null, with a BAD_REQUEST(400) status
+   */
+  public static <T> T confirmNeverNull(T object) throws ResponseException {
     if (object == null) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, "Missing object");
     }

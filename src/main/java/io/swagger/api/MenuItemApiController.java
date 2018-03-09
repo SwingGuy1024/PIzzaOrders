@@ -4,10 +4,10 @@ import java.util.List;
 import javax.validation.Valid;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
+import com.disney.miguelmunoz.challenge.entities.PojoUtility;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
-import com.disney.miguelmunoz.challenge.util.ResponseUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.MenuItemDto;
@@ -26,22 +26,22 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
 
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
+// I removed the Generated annotation, because it turns inspections off for the whole class.
+//@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
 
+@SuppressWarnings({"HardcodedFileSeparator", "HardCodedStringLiteral", "CallToNumericToString", "SimplifiableAnnotation"})
 @Controller
 public class MenuItemApiController implements MenuItemApi {
 
   private static final Logger log = LoggerFactory.getLogger(MenuItemApiController.class);
 
-  @Autowired
   private final ObjectMapper objectMapper;
 
-  @Autowired
   private final MenuItemRepository menuItemRepository;
   
-  @Autowired
   private final MenuItemOptionRepository menuItemOptionRepository;
-  
+
+  @Autowired
   public MenuItemApiController(
       ObjectMapper objectMapper, 
       MenuItemOptionRepository menuItemOptionRepository,
@@ -57,21 +57,19 @@ public class MenuItemApiController implements MenuItemApi {
       produces = {"application/json"},
       method = RequestMethod.POST)
   public ResponseEntity<CreatedResponse> addMenuItemOption(
-      @PathVariable("menuItemId") String menuItemId, 
+      @PathVariable("menuItemId") String menuItemId,
       @Valid @RequestBody MenuItemOptionDto optionDto
   ) {
-    try {
+    return serveCreated(() -> {
       confirmNotEmpty(optionDto.getName()); // throws ResponseException
       MenuItemOption option = objectMapper.convertValue(optionDto, MenuItemOption.class);
-      Integer itemId = decodeIdString(menuItemId); // throws ResponseException
+      Integer itemId = confirmAndDecodeInteger(menuItemId); // throws ResponseException
       final MenuItem menuItem = menuItemRepository.findOne(itemId);
       confirmNotNull(menuItem, itemId);
       option.setMenuItem(menuItem);
-      MenuItemOption savedOpton = menuItemOptionRepository.save(option);
-      return makeCreatedResponseWithId(savedOpton.getId().toString());
-    } catch (Exception | Error e) {
-      return makeErrorResponse(e);
-    }
+      MenuItemOption savedOption = menuItemOptionRepository.save(option);
+      return buildCreatedResponseWithId(savedOption.getId().toString());
+    });
   }
 
   @Override
@@ -80,22 +78,20 @@ public class MenuItemApiController implements MenuItemApi {
       consumes = {"application/json"},
       method = RequestMethod.PUT)
   public ResponseEntity<CreatedResponse> addMenuItem(@Valid @RequestBody MenuItemDto menuItemDto) {
-    try {
+    return serveCreated(() -> {
       for (MenuItemOptionDto option : skipNull(menuItemDto.getAllowedOptions())) {
         final String optionName = option.getName();
-        if (optionName == null || optionName.isEmpty()) {
+        if ((optionName == null) || optionName.isEmpty()) {
           throw new ResponseException(HttpStatus.BAD_REQUEST, "Missing Food Option name for item");
         }
       }
       MenuItem menuItem = convertMenuItem(menuItemDto);
       MenuItem savedItem = menuItemRepository.save(menuItem);
-      return makeCreatedResponseWithId(savedItem.getId().toString());
-    } catch (Exception | Error e) {
-      return makeErrorResponse(e);
-    }
+      return buildCreatedResponseWithId(savedItem.getId().toString());
+    });
   }
 
-  private MenuItem convertMenuItem(final @Valid @RequestBody MenuItemDto menuItemDto) {
+  private MenuItem convertMenuItem(@RequestBody @Valid final MenuItemDto menuItemDto) {
     final MenuItem menuItem = objectMapper.convertValue(menuItemDto, MenuItem.class);
 
     // objectMapper doesn't set the menuItems in the options, because it can't handle circular references, so we
@@ -112,11 +108,12 @@ public class MenuItemApiController implements MenuItemApi {
       produces = {"application/json"},
       method = RequestMethod.DELETE)
   public ResponseEntity<Void> deleteOption(@PathVariable("optionId") String optionId) {
-    try {
-      Integer id = decodeIdString(optionId);
+    return serveOK(() -> {
+      Integer id = confirmAndDecodeInteger(optionId);
       log.debug("Deleting menuItemOption with id {} evaluates to {}", optionId, id);
 
       MenuItemOption itemToDelete = menuItemOptionRepository.findOne(id);
+      PojoUtility.confirmNotNull(itemToDelete, id);
 
       // Before I can successfully delete the menuItemOption, I first have to set its menuItem to null. If I don't
       // do that, the delete call will fail. It doesn't help to set Cascade to Remove in the @ManyToOne annotation in 
@@ -126,29 +123,21 @@ public class MenuItemApiController implements MenuItemApi {
       menuItemOptionRepository.save(itemToDelete);
 
       menuItemOptionRepository.delete(itemToDelete);
-      return new ResponseEntity<>(HttpStatus.OK);
-    } catch (Exception | Error e) {
-      return ResponseUtility.makeGenericErrorResponse(e);
-    }
+      return (Void) null;
+    });
   }
 
   @Override
   @RequestMapping(value = "/menuItem/{id}", produces = {"application/json"}, method = RequestMethod.GET)
-  public ResponseEntity<MenuItemDto> getMenuItem(
-      @PathVariable("id") 
-      final Integer id) {
-    MenuItemDto dto = null;
-    try {
+  public ResponseEntity<MenuItemDto> getMenuItem(@PathVariable("id") final Integer id) {
+    return serveOK(() -> {
       MenuItem menuItem = menuItemRepository.findOne(id);
       confirmNotNull(menuItem, id);
-      dto = objectMapper.convertValue(menuItem, MenuItemDto.class);
-      return new ResponseEntity<>(dto, HttpStatus.OK);
-    } catch (ResponseException e) {
-      return ResponseUtility.makeGenericErrorResponse(e);
-    }
+      return objectMapper.convertValue(menuItem, MenuItemDto.class);
+    });
   }
 
-  ////// Package-leve methods for unit tests only! //////
+  ////// Package-level methods for unit tests only! //////
 
   MenuItem getMenuItemTestOnly(int id) {
     return menuItemRepository.findOne(id);

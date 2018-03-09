@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
 import io.swagger.model.MenuItemDto;
-import io.swagger.model.MenuItemOptionDto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -41,7 +40,7 @@ import static org.junit.Assert.*;
  *
  * @author Miguel Mu\u00f1oz
  */
-@SuppressWarnings("CallToNumericToString")
+@SuppressWarnings({"CallToNumericToString", "HardCodedStringLiteral"})
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @Component
@@ -101,7 +100,7 @@ public class OrderApiControllerTest {
 
     // Test bad input (not found)    
     ResponseEntity<CreatedResponse> createResponse = orderApiController.completeOrder("10000");
-    assertBad(createResponse);
+    assertNotFound(createResponse);
 
     log.info("Completing order with id = {}", idString);
     createResponse = orderApiController.completeOrder(idString);
@@ -124,10 +123,10 @@ public class OrderApiControllerTest {
 
     // Test of delete
     
-    ResponseEntity<CreatedResponse> badDeleteResponse = orderApiController.deleteOrder("BAD_ID");
+    ResponseEntity<Void> badDeleteResponse = orderApiController.deleteOrder("BAD_ID");
     assertBad(badDeleteResponse);
     
-    ResponseEntity<CreatedResponse> deleteResponse = orderApiController.deleteOrder(idString);
+    ResponseEntity<Void> deleteResponse = orderApiController.deleteOrder(idString);
     assertEquals(HttpStatus.ACCEPTED, deleteResponse.getStatusCode());
     
     // Make sure it got deleted.
@@ -138,7 +137,7 @@ public class OrderApiControllerTest {
     
     // Test of searchByComplete
 
-    MenuItem menuItem = menuItemApiController.getMenuItemTestOnly(PojoUtility.decodeIdString(pizzaItemId));    
+    MenuItem menuItem = menuItemApiController.getMenuItemTestOnly(PojoUtility.confirmAndDecodeInteger(pizzaItemId));    
 
     CustomerOrder orderM5Complete = makeOrder(-5, menuItem, true);
     CustomerOrder orderM4Complete = makeOrder(-4, menuItem, true);
@@ -188,8 +187,8 @@ public class OrderApiControllerTest {
     pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), "bad");
     assertBad(pizzaResponse);
     pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), "10000");
-    assertBad(pizzaResponse);
-    assertThat(pizzaResponse.getBody().getMessage(), containsString("MenuItemOption not contained in Order"));
+    assertNotFound(pizzaResponse);
+    assertThat(pizzaResponse.getBody().getMessage(), containsString("Missing object at id 10000"));
     pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), menuOptionIdString);
     assertStatus(HttpStatus.ACCEPTED, pizzaResponse);
     
@@ -267,7 +266,11 @@ public class OrderApiControllerTest {
   private void assertBad(final ResponseEntity<?> responseEntity) {
     assertStatus(HttpStatus.BAD_REQUEST, responseEntity);
   }
-  
+
+  private void assertNotFound(final ResponseEntity<?> responseEntity) {
+    assertStatus(HttpStatus.NOT_FOUND, responseEntity);
+  }
+
   private void assertStatus(HttpStatus status, final ResponseEntity<?> responseEntity) {
     assertEquals(String.format(
         "Request of %s", responseEntity.getStatusCode()),

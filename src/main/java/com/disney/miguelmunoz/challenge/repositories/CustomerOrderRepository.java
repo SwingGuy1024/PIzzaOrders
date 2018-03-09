@@ -6,6 +6,7 @@ import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 /**
  * <p>Created by IntelliJ IDEA.
@@ -14,6 +15,7 @@ import org.springframework.data.repository.query.Param;
  *
  * @author Miguel Mu\u00f1oz
  */
+@Repository
 public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Integer> {
   Collection<CustomerOrder> findByOrderTimeAfterAndOrderTimeBeforeOrderByOrderTime(Date startOfRange, Date endOfRange);
   
