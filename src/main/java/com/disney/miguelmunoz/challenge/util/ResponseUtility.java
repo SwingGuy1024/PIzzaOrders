@@ -19,12 +19,12 @@ public enum ResponseUtility {
   ;
   private static final Logger log = LoggerFactory.getLogger(ResponseUtility.class);
 
-  public static ResponseEntity<CreatedResponse> makeGenericErrorResponse(RuntimeException t) {
+  public static ResponseEntity<CreatedResponse> logAndMakeGenericErrorResponse(RuntimeException t) {
     log.debug(t.getMessage(), t);
     return new ResponseEntity<>(makeError(t), HttpStatus.BAD_REQUEST);
   }
   
-  public static ResponseEntity<?> makeErrorResponse(ResponseException ex) {
+  public static ResponseEntity<?> logAndMakeErrorResponse(ResponseException ex) {
     final HttpStatus httpStatus = ex.getHttpStatus();
     log.debug(httpStatus.toString(), ex);
     return new ResponseEntity<>(makeErrorFromResponseException(ex), httpStatus);
@@ -122,10 +122,10 @@ public enum ResponseUtility {
       return new ResponseEntity<>(method.doService(), successStatus);
     } catch (ResponseException e) {
       //noinspection unchecked
-      return (ResponseEntity<T>) makeErrorResponse(e);
+      return (ResponseEntity<T>) logAndMakeErrorResponse(e);
     } catch (RuntimeException re) {
       //noinspection unchecked
-      return (ResponseEntity<T>) makeGenericErrorResponse(re);
+      return (ResponseEntity<T>) logAndMakeGenericErrorResponse(re);
     }
   }
 }
