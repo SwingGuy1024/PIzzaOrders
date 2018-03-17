@@ -113,6 +113,7 @@ public enum ResponseUtility {
    * @param <T> The return type. 
    * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
    * @see ServiceMethod#doService() 
+   * @see ResponseException
    */
   public static <T> ResponseEntity<T> serve(HttpStatus successStatus, ServiceMethod<T> method) {
     assert method != null;
