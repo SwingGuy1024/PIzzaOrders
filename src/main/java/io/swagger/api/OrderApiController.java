@@ -51,11 +51,11 @@ public class OrderApiController implements OrderApi {
 
   private final ObjectMapper objectMapper;
 
-  private CustomerOrderRepository customerOrderRepository;
+  private final CustomerOrderRepository customerOrderRepository;
   
-  private MenuItemRepository menuItemRepository;
+  private final MenuItemRepository menuItemRepository;
   
-  private MenuItemOptionRepository menuItemOptionRepository;
+  private final MenuItemOptionRepository menuItemOptionRepository;
 
   @Autowired
   public OrderApiController(
@@ -279,13 +279,12 @@ public class OrderApiController implements OrderApi {
       consumes = {"application/json"},
       method = RequestMethod.POST)
   public ResponseEntity<CreatedResponse> updateOrder(final CustomerOrderDto order) {
-    return null;
+    return null; // Not yet written.
   }
 
   private CustomerOrder makeCustomerOrder(final CustomerOrderDto order) {
     return objectMapper.convertValue(order, CustomerOrder.class);
   }
-
 
   ////// Package-level methods for unit tests only! //////
 
