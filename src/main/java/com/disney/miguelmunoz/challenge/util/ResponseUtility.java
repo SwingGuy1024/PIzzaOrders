@@ -122,10 +122,10 @@ public enum ResponseUtility {
       return new ResponseEntity<>(method.doService(), successStatus);
     } catch (ResponseException e) {
       //noinspection unchecked
-      return (ResponseEntity<T>) logAndMakeErrorResponse(e);
+      return (ResponseEntity<T>) logAndMakeErrorResponse(e); // Gets the HttpStatus from the ResponseException
     } catch (RuntimeException re) {
       //noinspection unchecked
-      return (ResponseEntity<T>) logAndMakeGenericErrorResponse(re);
+      return (ResponseEntity<T>) logAndMakeGenericErrorResponse(re); // Sets HttpStatus to BAD_REQUEST
     }
   }
 }
