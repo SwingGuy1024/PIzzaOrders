@@ -36,7 +36,7 @@ public enum PojoUtility {
   private static final DateFormat timeFormat = new SimpleDateFormat(TIME_FORMAT, Locale.UK);
 
   /**
-   * Clones the date. If the date is null, returns null. (Doesn't actually call clone().) This is for Date values
+   * Clones the date. If the date is null, returns null. (This doesn't actually call clone().) This is for Date values
    * that are allowed to be null, so it may return null. Never throws a NullPointerException.
    * @param theDate The Date to clone
    * @return A clone of the specified Date.
@@ -74,7 +74,7 @@ public enum PojoUtility {
    *
    * @param id The id as a String
    * @return the id as a Integer value
-   * @throws ResponseException if id is null or is not readable as a long value, throws a Bad Request response.
+   * @throws ResponseException BAD_REQUEST (400) if id is null or is not readable as a long value.
    */
   public static Integer confirmAndDecodeInteger(final String id) throws ResponseException {
     try {
@@ -90,7 +90,7 @@ public enum PojoUtility {
    *
    * @param id The id as a String
    * @return the id as a Long value
-   * @throws ResponseException if id is null or is not readable as a long value, throws a Bad Request response.
+   * @throws ResponseException BAD_REQUEST (400) if id is null or is not readable as a long value.
    */
   public static Long confirmAndDecodeLong(final String id) throws ResponseException {
     try {
@@ -107,7 +107,7 @@ public enum PojoUtility {
    * @param id The id, used to generate a useful error message
    * @param <T> The type of the entity
    * @return entity, if it's not null
-   * @throws ResponseException if entity is null, with status of NOT_FOUND(404)
+   * @throws ResponseException NOT_FOUND (404) if entity is null.
    */
   public static <T> T confirmNotNull(T entity, Object id) throws ResponseException {
     if (entity == null) {
@@ -122,7 +122,7 @@ public enum PojoUtility {
    * @param object The non-entity object to test.
    * @param <T> The object type
    * @return object, only if it's not null
-   * @throws ResponseException if object is null, with a BAD_REQUEST(400) status
+   * @throws ResponseException BAD_REQUEST (400) if object is null
    */
   public static <T> T confirmNeverNull(T object) throws ResponseException {
     if (object == null) {
@@ -131,18 +131,41 @@ public enum PojoUtility {
     return object;
   }
 
+  /**
+   * Use when a value should be null. For example, if a field should not be initialized, such as the ID of an entity 
+   * that is about to be created, or an end-time for an operation that has not yet ended.
+   * @param object The object that should be null.
+   * @throws ResponseException BAD_REQUEST (400) if the object is not null.
+   */
   public static void confirmNull(Object object) throws ResponseException {
     if (object != null) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, "non-null value");
     }
   }
 
+  /**
+   * Confirms the two objects are equal. Uses Objects.equals().
+   * @param expected The expected value
+   * @param actual The actual value
+   * @param <T> The type of each object
+   * @throws ResponseException BAD_REQUEST (400) if the objects are not equal
+   * @see Objects#equals(Object, Object) 
+   */
   public static <T> void confirmEqual(T expected, T actual) throws ResponseException {
     if (!Objects.equals(actual, expected)) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Expected %s  Found %s", expected, actual));
     }
   }
 
+  /**
+   * Confirms the two objects are equal. Uses Objects.equals().
+   * @param message The message to use if the objects are not equal
+   * @param expected The expected value
+   * @param actual The actual value
+   * @param <T> The type of each object
+   * @throws ResponseException BAD_REQUEST (400) if the objects are not equal
+   * @see Objects#equals(Object, Object)
+   */
   public static <T> void confirmEqual(String message, T expected, T actual) throws ResponseException {
     if (!Objects.equals(actual, expected)) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, message);
@@ -183,7 +206,7 @@ public enum PojoUtility {
    * The return value is usually not used, since this is just to test for valid data.
    * @param s The String
    * @return s
-   * @throws ResponseException if the String is null or empty
+   * @throws ResponseException BAD_REQUEST (400) if the String is null or empty
    */
   public static String confirmNotEmpty(String s) throws ResponseException {
     if ((s == null) || s.isEmpty()) {
