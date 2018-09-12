@@ -56,9 +56,9 @@ public enum PojoUtility {
    * iterate over any collection without checking it for null: 
    * <p>
    * {@code for (String s: skipNull(maybeNullSetOfStrings)) {...}}
-   * @param iterable The collection
+   * @param iterable The collection or other Iterable
    * @param <T> The type of the collection members
-   * @return the supplied collection, or if it's null, an unmodifiable empty list.
+   * @return the supplied Iterable, or if it's null, an unmodifiable empty Iterable.
    */
   @SuppressWarnings("unchecked") // always empty, so there are no values to cast incorrectly.
   public static <T> Iterable<T> skipNull(Iterable<T> iterable) {
