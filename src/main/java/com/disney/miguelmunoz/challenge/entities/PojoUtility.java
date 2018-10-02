@@ -1,22 +1,20 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.io.IOException;
-import java.util.Date;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
+import com.disney.miguelmunoz.challenge.exception.BadRequestException;
+import com.disney.miguelmunoz.challenge.exception.NotFoundException;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 
 /**
  * By convention, all methods that may throw a ResponseException begin with the word confirm
@@ -26,28 +24,22 @@ import org.springframework.http.HttpStatus;
  *
  * @author Miguel Mu\u00f1oz
  */
-@SuppressWarnings({"UnusedReturnValue", "HardCodedStringLiteral"})
+@SuppressWarnings({"UnusedReturnValue", "HardCodedStringLiteral", "OverlyBroadThrowsClause"})
 public enum PojoUtility {
   ;
 
   private static final Logger log = LoggerFactory.getLogger(PojoUtility.class);
   private static final ObjectMapper mapper = new ObjectMapper();
-  public static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSZ";
-  private static final DateFormat timeFormat = new SimpleDateFormat(TIME_FORMAT, Locale.UK);
-
-  /**
-   * Clones the date. If the date is null, returns null. (This doesn't actually call clone().) This is for Date values
-   * that are allowed to be null, so it may return null. Never throws a NullPointerException.
-   * @param theDate The Date to clone
-   * @return A clone of the specified Date.
-   */
-  public static Date cloneDate(Date theDate) {
-    if (theDate != null) {
-      // clone() doesn't work on java.sql.Date. This works fine.
-      return new Date(theDate.getTime());
-    }
-    return null;
-  }
+//  public static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSZ";
+//  public static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ISO_INSTANT;
+	//	private static final Duration THREE_DAYS = Duration.ofDays(3L);
+	//	private static final DateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	//  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+//  public static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+//  public static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+  public static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+  public static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ISO_OFFSET_DATE;
+//  private static final DateFormat timeFormat = new SimpleDateFormat(TIME_FORMAT, Locale.UK);
 
   private static final Iterable<Object> emptyIterable = Collections.unmodifiableCollection(Collections.emptyList());
 
@@ -81,7 +73,7 @@ public enum PojoUtility {
       @SuppressWarnings("argument.type.incompatible") final Integer longValue = Integer.valueOf(id);
       return longValue; // throws NumberFormatException on null
     } catch (NumberFormatException e) {
-      throw ResponseException.unreadableId(id, e);
+      throw new BadRequestException(id, e);
     }
   }
 
@@ -97,7 +89,7 @@ public enum PojoUtility {
       @SuppressWarnings("argument.type.incompatible") final Long longValue = Long.valueOf(id);
       return longValue; // throws NumberFormatException on null
     } catch (NumberFormatException e) {
-      throw ResponseException.unreadableId(id, e);
+      throw new BadRequestException(id, e);
     }
   }
 
@@ -109,16 +101,16 @@ public enum PojoUtility {
    * @return entity, if it's not null
    * @throws ResponseException NOT_FOUND (404) if entity is null.
    */
-  public static <T> T confirmNotNull(T entity, Object id) throws ResponseException {
+  public static <T> T confirmFound(T entity, Object id) throws ResponseException {
     if (entity == null) {
-      throw new ResponseException(HttpStatus.NOT_FOUND, String.format("Missing object at id %s", id));
+      throw new NotFoundException(String.format("Missing object at id %s", id));
     }
     return entity;
   }
 
   /**
-   * Use when a non-entity object should not be null. Returns a BadRequest (400). If an entity is null, you should use
-   * confirmNotNull(T object, Object id), which return a NOT_FOUND (404).
+   * Use when a non-entity object should not be null. Returns a BadRequest (400). If testing for an entity, you 
+   * should use confirmFound(T object, Object id), which return a NOT_FOUND (404).
    * @param object The non-entity object to test.
    * @param <T> The object type
    * @return object, only if it's not null
@@ -126,7 +118,7 @@ public enum PojoUtility {
    */
   public static <T> T confirmNeverNull(T object) throws ResponseException {
     if (object == null) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, "Missing object");
+      throw new BadRequestException("Missing object");
     }
     return object;
   }
@@ -139,7 +131,7 @@ public enum PojoUtility {
    */
   public static void confirmNull(Object object) throws ResponseException {
     if (object != null) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, "non-null value");
+      throw new BadRequestException("non-null value");
     }
   }
 
@@ -153,7 +145,7 @@ public enum PojoUtility {
    */
   public static <T> void confirmEqual(T expected, T actual) throws ResponseException {
     if (!Objects.equals(actual, expected)) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Expected %s  Found %s", expected, actual));
+      throw new BadRequestException(String.format("Expected %s  Found %s", expected, actual));
     }
   }
 
@@ -168,7 +160,7 @@ public enum PojoUtility {
    */
   public static <T> void confirmEqual(String message, T expected, T actual) throws ResponseException {
     if (!Objects.equals(actual, expected)) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, message);
+      throw new BadRequestException(message);
     }
   }
 
@@ -180,16 +172,16 @@ public enum PojoUtility {
     return mapper.convertValue(inputList, new TypeReference<List<O>>() { });
   }
 
-  private static Date parse(String dateText) {
-    if (dateText == null) {
-      return null;
-    }
-    try {
-      return new Date(timeFormat.parse(dateText).getTime());
-    } catch (ParseException e) {
-      throw new IllegalStateException(String.format("Failed to parse %s", dateText), e);
-    }
-  }
+//  private static Instant parse(String dateText) {
+//    if (dateText == null) {
+//      return null;
+//    }
+//    try {
+//      return Instant(timeFormat.parse(dateText).getTime());
+//    } catch (ParseException e) {
+//      throw new IllegalStateException(String.format("Failed to parse %s", dateText), e);
+//    }
+//  }
 
   /**
    * Returns the String, or an empty String if the String is null.
@@ -210,7 +202,7 @@ public enum PojoUtility {
    */
   public static String confirmNotEmpty(String s) throws ResponseException {
     if ((s == null) || s.isEmpty()) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Null or empty value: \"%s\"", s));
+      throw new BadRequestException(String.format("Null or empty value: \"%s\"", s));
     }
     return s;
   }

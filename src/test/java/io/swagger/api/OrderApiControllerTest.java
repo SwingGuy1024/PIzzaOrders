@@ -1,10 +1,12 @@
 package io.swagger.api;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import com.disney.miguelmunoz.challenge.Application;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
@@ -26,9 +28,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.threeten.bp.Instant;
-import org.threeten.bp.OffsetDateTime;
-import org.threeten.bp.ZoneId;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -46,7 +45,9 @@ import static org.junit.Assert.*;
 @Component
 public class OrderApiControllerTest {
   private static final Logger log = LoggerFactory.getLogger(OrderApiControllerTest.class);
-  
+
+ 	private static final Duration THREE_DAYS = Duration.ofDays(3L);
+
   @Autowired
   private MenuItemApiController menuItemApiController;
   
@@ -55,7 +56,9 @@ public class OrderApiControllerTest {
 
   @Autowired
   private ObjectMapper mapper;
-  
+  private static final Duration ONE_DAY = Duration.ofDays(1);
+  private static final Duration ONE_HOUR = Duration.ofHours(1);
+
   @Test
   public void testAllOrderMethods() throws ResponseException {
     MenuItemDto pizzaMenuItemDto = MenuItemApiControllerTest.createPizzaMenuItem();
@@ -67,7 +70,7 @@ public class OrderApiControllerTest {
 
     CustomerOrderDto customerOrderDto = new CustomerOrderDto();
     
-    // bad values:
+    // bad values: All these values should be null.
     customerOrderDto.setId(5);
     customerOrderDto.setCompleteTime(OffsetDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
     customerOrderDto.setComplete(Boolean.TRUE);
@@ -104,18 +107,21 @@ public class OrderApiControllerTest {
 
     log.info("Completing order with id = {}", idString);
     createResponse = orderApiController.completeOrder(idString);
-    assertEquals(HttpStatus.ACCEPTED, createResponse.getStatusCode());
-    CustomerOrderDto body = orderApiController.searchForOrder(idString).getBody();
+    assertAccepted(createResponse);
+    final ResponseEntity<CustomerOrderDto> customerOrderDtoResponseEntity = orderApiController.searchForOrder(idString);
+    CustomerOrderDto body = customerOrderDtoResponseEntity.getBody();
     log.info("DTO Order time: {}", body.getOrderTime());
     log.info("Dto Compl time: {}", body.getCompleteTime());
     assertNotNull(String.format("Not found at id %s", idString), body);
     log.info("Found DTO order with id = {}", body.getId());
+    //noinspection HardcodedLineSeparator
     log.info("OrderDto: \n{}", body.toString());
     assertEquals(Boolean.TRUE, body.isComplete()); // Doesn't work yet.
     OffsetDateTime completeTime = body.getCompleteTime();
-    GregorianCalendar now = new GregorianCalendar();
-    assertThat(completeTime.getDayOfMonth() + 1, greaterThanOrEqualTo(now.get(GregorianCalendar.DAY_OF_MONTH)));
-    
+    OffsetDateTime nowTime = OffsetDateTime.now();
+    Duration duration = Duration.between(completeTime, nowTime);
+    assertTrue(String.format("%s, !>= %s", completeTime, nowTime), nowTime.compareTo(completeTime) >= 0);
+
     // test of already complete
     createResponse = orderApiController.completeOrder(idString);
     assertEquals(HttpStatus.BAD_REQUEST, createResponse.getStatusCode());
@@ -153,27 +159,29 @@ public class OrderApiControllerTest {
     for (CustomerOrder o : currentOrders) {
       log.info("id: {}, orderTime: {}, completeTime: {}", o.getId(), o.getOrderTime(), o.getCompleteTime());
     }
-    
-    Date threeDaysAgo = new Date(now.getTimeInMillis() - (3 * OrderApiController.DAY_IN_MILLIS));
+
+    Instant threeDaysAgo = Instant.now().minus(THREE_DAYS);
     Collection<CustomerOrder> timedOrder = orderApiController.findByOrderTimeTestOnly(threeDaysAgo);
     log.info("Search on 3 days ago produced {} results", timedOrder.size());
     for (CustomerOrder pastOrder : timedOrder) {
       log.info("id {} orderTime: {}", pastOrder.getId(), pastOrder.getOrderTime());
     }
-    
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+//    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+//    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    DateTimeFormatter dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
     deltaDaysSearchTest(dateFormat, 8, 5, 3, -5);
     deltaDaysSearchTest(dateFormat, 7, 4, 3, -4);
     deltaDaysSearchTest(dateFormat, 6, 3, 3, -3);
     deltaDaysSearchTest(dateFormat, 4, 2, 2, -2);
     
-    SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-
-    deltaDaysSearchTest(dateTimeFormat, 8, 5, 3, -5);
-    deltaDaysSearchTest(dateTimeFormat, 7, 4, 3, -4);
-    deltaDaysSearchTest(dateTimeFormat, 6, 3, 3, -3);
-    deltaDaysSearchTest(dateTimeFormat, 4, 2, 2, -2);
+//    DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+//
+//    deltaDaysSearchTest(dateTimeFormat, 8, 5, 3, -5);
+//    deltaDaysSearchTest(dateTimeFormat, 7, 4, 3, -4);
+//    deltaDaysSearchTest(dateTimeFormat, 6, 3, 3, -3);
+//    deltaDaysSearchTest(dateTimeFormat, 4, 2, 2, -2);
     
     // test of addMenuItemOptionToOrder()
     
@@ -205,14 +213,15 @@ public class OrderApiControllerTest {
    * @param falseCount expect count for completed = false
    * @param delta The number of days to go back for the starting point.
    */
-  private void deltaDaysSearchTest(final SimpleDateFormat dateFormat, final int fullCount, final int trueCount, final int falseCount, final int delta) {
-    final Date nowTime = new Date(System.currentTimeMillis());
+  private void deltaDaysSearchTest(final DateTimeFormatter dateFormat, final int fullCount, final int trueCount, final int falseCount, final int delta) {
+    final OffsetDateTime nowTime = OffsetDateTime.now();
     String nowTimeTxt = dateFormat.format(nowTime);
 
     // Search from 5 days earlier to now 
     final String startOfRange = delta(nowTime, delta, dateFormat);
     ResponseEntity<List<CustomerOrderDto>> dtoListResponse 
         = orderApiController.searchByComplete(startOfRange, null, nowTimeTxt);
+    assertOkay(dtoListResponse);
     List<CustomerOrderDto> dtoList = dtoListResponse.getBody();
     assertNotNull(dtoList);
     assertEquals(fullCount, dtoList.size());
@@ -238,18 +247,18 @@ public class OrderApiControllerTest {
    * @param fmt The DateFormat instance to format the date
    * @return The resulting date, as a String.
    */
-  private String delta(Date date, int deltaDays, DateFormat fmt) {
-    return fmt.format(new Date(date.getTime() + (deltaDays * OrderApiController.DAY_IN_MILLIS)));
+  private String delta(OffsetDateTime date, int deltaDays, DateTimeFormatter fmt) {
+    return fmt.format(date.plus(deltaDays, ChronoUnit.DAYS));
   }
   
   private CustomerOrder makeOrder(int deltaDays, MenuItem menuItem, boolean complete) {
     CustomerOrder order = new CustomerOrder();
     order.setMenuItem(menuItem);
-    final long dateMillis = System.currentTimeMillis() + ((OrderApiController.DAY_IN_MILLIS * deltaDays) + 3600000); // add an hour
-    Date date = new Date(dateMillis);
+//    final long dateMillis = System.currentTimeMillis() + ((OrderApiController.DAY_IN_MILLIS * deltaDays) + 3600000); // add an hour
+    Instant date = Instant.now().plus(deltaDays, ChronoUnit.DAYS).plus(ONE_HOUR);
     order.setOrderTime(date);
     if (complete) {
-      Date fiveDaysLater = new Date(dateMillis + (5 * OrderApiController.DAY_IN_MILLIS));
+      Instant fiveDaysLater = date.plus(5, ChronoUnit.DAYS);
       order.setComplete(true);
       order.setCompleteTime(fiveDaysLater);
     }
@@ -258,7 +267,11 @@ public class OrderApiControllerTest {
     log.info("        {}", order);
     return order;
   }
-  
+
+  private void assertOkay(final ResponseEntity<?> responseEntity) {
+    assertStatus(HttpStatus.OK, responseEntity);
+  }
+
   private void assertCreated(final ResponseEntity<?> responseEntity) {
     assertStatus(HttpStatus.CREATED, responseEntity);
   }
@@ -269,6 +282,10 @@ public class OrderApiControllerTest {
 
   private void assertNotFound(final ResponseEntity<?> responseEntity) {
     assertStatus(HttpStatus.NOT_FOUND, responseEntity);
+  }
+  
+  private void assertAccepted(final ResponseEntity<?> responseEntity) {
+    assertStatus(HttpStatus.ACCEPTED, responseEntity);
   }
 
   private void assertStatus(HttpStatus status, final ResponseEntity<?> responseEntity) {

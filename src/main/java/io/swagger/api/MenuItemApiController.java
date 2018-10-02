@@ -5,7 +5,7 @@ import javax.validation.Valid;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
-import com.disney.miguelmunoz.challenge.exception.ResponseException;
+import com.disney.miguelmunoz.challenge.exception.BadRequestException;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +15,6 @@ import io.swagger.model.MenuItemOptionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,7 +64,7 @@ public class MenuItemApiController implements MenuItemApi {
       MenuItemOption option = objectMapper.convertValue(optionDto, MenuItemOption.class);
       Integer itemId = confirmAndDecodeInteger(menuItemId); // throws ResponseException
       final MenuItem menuItem = menuItemRepository.findOne(itemId);
-      confirmNotNull(menuItem, itemId);
+      confirmFound(menuItem, itemId);
       option.setMenuItem(menuItem);
       MenuItemOption savedOption = menuItemOptionRepository.save(option);
       return buildCreatedResponseWithId(savedOption.getId().toString());
@@ -82,7 +81,7 @@ public class MenuItemApiController implements MenuItemApi {
       for (MenuItemOptionDto option : skipNull(menuItemDto.getAllowedOptions())) {
         final String optionName = option.getName();
         if ((optionName == null) || optionName.isEmpty()) {
-          throw new ResponseException(HttpStatus.BAD_REQUEST, "Missing Food Option name for item");
+          throw new BadRequestException("Missing Food Option name for item");
         }
       }
       MenuItem menuItem = convertMenuItem(menuItemDto);
@@ -113,7 +112,7 @@ public class MenuItemApiController implements MenuItemApi {
       log.debug("Deleting menuItemOption with id {} evaluates to {}", optionId, id);
 
       MenuItemOption itemToDelete = menuItemOptionRepository.findOne(id);
-      PojoUtility.confirmNotNull(itemToDelete, id);
+      PojoUtility.confirmFound(itemToDelete, id);
 
       // Before I can successfully delete the menuItemOption, I first have to set its menuItem to null. If I don't
       // do that, the delete call will fail. It doesn't help to set Cascade to Remove in the @ManyToOne annotation in 
@@ -123,7 +122,7 @@ public class MenuItemApiController implements MenuItemApi {
       menuItemOptionRepository.save(itemToDelete);
 
       menuItemOptionRepository.delete(itemToDelete);
-      return (Void) null;
+      return null;
     });
   }
 
@@ -132,7 +131,7 @@ public class MenuItemApiController implements MenuItemApi {
   public ResponseEntity<MenuItemDto> getMenuItem(@PathVariable("id") final Integer id) {
     return serveOK(() -> {
       MenuItem menuItem = menuItemRepository.findOne(id);
-      confirmNotNull(menuItem, id);
+      confirmFound(menuItem, id);
       return objectMapper.convertValue(menuItem, MenuItemDto.class);
     });
   }

@@ -8,16 +8,17 @@ import org.threeten.bp.Instant;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZonedDateTime;
 
-@Configuration
+//@Configuration
 public class JacksonConfiguration {
 
-  @Bean
-  @ConditionalOnMissingBean(ThreeTenModule.class)
-  ThreeTenModule threeTenModule() {
-    ThreeTenModule module = new ThreeTenModule();
-    module.addDeserializer(Instant.class, CustomInstantDeserializer.INSTANT);
-    module.addDeserializer(OffsetDateTime.class, CustomInstantDeserializer.OFFSET_DATE_TIME);
-    module.addDeserializer(ZonedDateTime.class, CustomInstantDeserializer.ZONED_DATE_TIME);
-    return module;
-  }
+  // TODO: GET RID of this class?
+//  @Bean
+//  @ConditionalOnMissingBean(ThreeTenModule.class)
+//  ThreeTenModule threeTenModule() {
+//    ThreeTenModule module = new ThreeTenModule();
+//    module.addDeserializer(Instant.class, CustomInstantDeserializer.INSTANT);
+//    module.addDeserializer(OffsetDateTime.class, CustomInstantDeserializer.OFFSET_DATE_TIME);
+//    module.addDeserializer(ZonedDateTime.class, CustomInstantDeserializer.ZONED_DATE_TIME);
+//    return module;
+//  }
 }

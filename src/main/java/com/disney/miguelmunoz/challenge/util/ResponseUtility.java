@@ -101,7 +101,7 @@ public enum ResponseUtility {
    *   public ResponseEntity{@literal <MenuItemDto>} getMenuItem(@PathVariable("id") final Integer id) {
    *     return serve(HttpStatus.OK, () -> {
    *       MenuItem menuItem = menuItemRepository.findOne(id);
-   *       confirmNotNull(menuItem, id); // throws ResponseException if null
+   *       confirmFound(menuItem, id); // throws ResponseException if null
    *       MenuItemDto dto = objectMapper.convertValue(menuItem, MenuItemDto.class);
    *       return dto;
    *     });

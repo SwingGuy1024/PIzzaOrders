@@ -1,19 +1,19 @@
 package io.swagger.api;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.util.Calendar;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
-import java.util.Date;
-import java.text.SimpleDateFormat;
-import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
-import com.disney.miguelmunoz.challenge.entities.PojoUtility;
+import com.disney.miguelmunoz.challenge.exception.BadRequestException;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
@@ -32,10 +32,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.threeten.bp.OffsetDateTime;
 
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
+
+//import java.util.Date;
 
 //@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
 
@@ -45,9 +46,10 @@ public class OrderApiController implements OrderApi {
 
   private static final Logger log = LoggerFactory.getLogger(OrderApiController.class);
 
-  public static final long DAY_IN_MILLIS = 24L * 60L * 60L * 1000L;
-  private static final DateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+//	private static final long DAY_IN_SECONDS = 24L * 60L * 60L;
+//	private static final long DAY_IN_MILLIS = DAY_IN_SECONDS * 1000L;
+	private static final Duration ONE_DAY = Duration.ofDays(1L);
+	private static final DateTimeFormatter DATE_TIME_LONG_FMT = DateTimeFormatter.ISO_INSTANT;
 
   private final ObjectMapper objectMapper;
 
@@ -80,7 +82,7 @@ public class OrderApiController implements OrderApi {
   ) {
     return serve(HttpStatus.ACCEPTED, () -> {
       CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(orderId)); // throws ResponseException
-      confirmNotNull(order, orderId);
+      confirmFound(order, orderId);
       MenuItem item = order.getMenuItem();
       final Integer optionId = confirmAndDecodeInteger(menuOptionId);
       confirmItemHasOptionId(item, optionId); // throws ResponseException
@@ -99,7 +101,7 @@ public class OrderApiController implements OrderApi {
       }
     }
     //noinspection ConstantConditions
-    confirmNotNull(null, menuOptionId); // Error String is used in a unit test.
+    confirmFound(null, menuOptionId); // Error String is used in a unit test.
   }
 
   @Override
@@ -116,9 +118,10 @@ public class OrderApiController implements OrderApi {
       confirmNeverNull(menuItem);
       confirmEqual(Boolean.FALSE, orderEntity.getComplete());
 
-      orderEntity.setOrderTime(new Date(System.currentTimeMillis()));
-      final Date orderTime = orderEntity.getOrderTime();
-      log.debug("Pojo set order time: {} = {}", orderTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(orderTime));
+      orderEntity.setOrderTime(Instant.now());
+      final Instant orderTime = orderEntity.getOrderTime();
+      log.debug("About to format time of {}", orderTime.toString());
+      log.debug("Pojo set order time: {} = {}", orderTime, DATE_TIME_LONG_FMT.format(orderTime));
       // We don't use CascadeType.PERSIST, because it throws an exception if the menuItem already exists, claiming it's 
       // a detached object. So we save it first and re-add it to the entityOrder..
       MenuItem savedMenuItem = menuItemRepository.save(menuItem);
@@ -135,14 +138,14 @@ public class OrderApiController implements OrderApi {
   public ResponseEntity<CreatedResponse> completeOrder(@PathVariable("id") final String id) {
     return serve(HttpStatus.ACCEPTED, () -> {
       CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(id));
-      confirmNotNull(order, id);
+      confirmFound(order, id);
       confirmEqual("Already Complete", Boolean.FALSE, order.getComplete()); // Test searches for this String.
       order.setComplete(Boolean.TRUE);
-      final Date completeTime = new Date(System.currentTimeMillis());
-      log.debug("Pojo Complete Time: {} = {}", completeTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(completeTime));
+      final Instant completeTime = Instant.now();
+      log.debug("Pojo Complete Time: {} = {}", completeTime, DATE_TIME_LONG_FMT.format(completeTime));
       order.setCompleteTime(completeTime);
-      Date cTime = order.getCompleteTime();
-      log.debug("Pojo Complete Time: {} = {}", cTime, new SimpleDateFormat(PojoUtility.TIME_FORMAT).format(cTime));
+      Instant cTime = order.getCompleteTime();
+      log.debug("Pojo Complete Time: {} = {}", cTime, DATE_TIME_LONG_FMT.format(cTime));
       customerOrderRepository.save(order);
       return new CreatedResponse();
     });
@@ -156,7 +159,7 @@ public class OrderApiController implements OrderApi {
     return serve(HttpStatus.ACCEPTED, () -> {
       final Integer idInt = confirmAndDecodeInteger(id);
       customerOrderRepository.delete(idInt);
-      return (Void) null;
+      return null;
     });
   }
 
@@ -172,7 +175,7 @@ public class OrderApiController implements OrderApi {
     return serveOK(() -> {
       // Records whether it parsed both Date and Time or just Date.
       ReturnableReference<Boolean> usesTime = new ReturnableReference<>();
-      Date startTime = parseDate(startingDate, null, usesTime); // throws ResponseException
+	    Instant startTime = parseDate(startingDate, null, usesTime); // throws ResponseException
 
       // works even if usesTime.getValue() is null. (Actually, I never expect it to be null.)
       //noinspection BooleanVariableAlwaysNegated
@@ -182,11 +185,11 @@ public class OrderApiController implements OrderApi {
       // startTime here is the default value. So if endingDate is empty or null, it uses the start date for both
       // ends of the range. For DateTime search this is useless, but for date-only searches, this limits the search
       // to a single day.
-      Date endTime = parseDate(endingDate, startTime, usesTime); // throws ResponseException
+	    Instant endTime = parseDate(endingDate, startTime, usesTime); // throws ResponseException
 
       // If we only specified a Date for both figures...
       if (!timeUsed && !usesTime.getValue()) {
-        endTime = new Date(endTime.getTime() + DAY_IN_MILLIS);
+      	endTime = endTime.plus(ONE_DAY);
       }
 
       final Collection<CustomerOrder> results;
@@ -204,7 +207,7 @@ public class OrderApiController implements OrderApi {
     for (CustomerOrder order : results) {
       CustomerOrderDto dto = new CustomerOrderDto();
       dto.setComplete(order.getComplete());
-      final Date completeTime = order.getCompleteTime();
+      final Instant completeTime = order.getCompleteTime();
       OffsetDateTime completeDateTime = objectMapper.convertValue(completeTime, OffsetDateTime.class);
       dto.setCompleteTime(completeDateTime);
       dto.setId(order.getId());
@@ -224,9 +227,9 @@ public class OrderApiController implements OrderApi {
    * @param defaultDate The default Date to use if dateText is null or empty. If null, uses the value of getCurrentDate()
    * @param usesTime    Holds true if the date includes the time, false otherwise.
    * @return The Date specified in the DateText.
-   * @throws ResponseException BAD_REQUEST if it's unable to parse the dateText.
+   * @throws BadRequestException BAD_REQUEST if it's unable to parse the dateText.
    */
-  private Date parseDate(String dateText, Date defaultDate, ReturnableReference<Boolean> usesTime) throws ResponseException {
+  private Instant parseDate(String dateText, Instant defaultDate, ReturnableReference<Boolean> usesTime) throws BadRequestException {
     // I don't know if a missing date is sent as null or as an empty String, but this gets both cases.
     if ((dateText == null) || dateText.isEmpty()) {
       usesTime.setValue(Boolean.FALSE);
@@ -237,20 +240,19 @@ public class OrderApiController implements OrderApi {
     }
     try {
       usesTime.setValue(Boolean.TRUE);
-      return DATE_TIME_FORMAT.parse(dateText);
-    } catch (ParseException ignored) { }
+      return Instant.from(DateTimeFormatter.ISO_OFFSET_DATE.parse(dateText));
+    } catch (DateTimeParseException ignored) { }
     try {
       usesTime.setValue(Boolean.FALSE);
-      return DATE_FORMAT.parse(dateText);
-    } catch (ParseException ex) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, String.format("Unable to parse: %s", dateText), ex);
+      return Instant.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(dateText));
+    } catch (DateTimeParseException ex) {
+      throw new BadRequestException(String.format("Unable to parse: %s", dateText), ex);
     }
   }
 
-  private static Date getCurrentDate() {
-    GregorianCalendar now = new GregorianCalendar();
-    GregorianCalendar today = new GregorianCalendar(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
-    return today.getTime();
+  private static Instant getCurrentDate() {
+  	LocalDate date = LocalDate.now();
+    return Instant.from(date);
   }
 
   @Override
@@ -260,14 +262,14 @@ public class OrderApiController implements OrderApi {
   public ResponseEntity<CustomerOrderDto> searchForOrder(@PathVariable("id") final String id) {
     return serveOK(() -> {
       CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(id));
-      SimpleDateFormat format = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
-      final Date orderTime = order.getOrderTime();
+//      SimpleDateFormat format = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
+      final Instant orderTime = order.getOrderTime();
       if (orderTime != null) {
-        log.info("Pojo Order time: {} = {}", orderTime, format.format(orderTime));
+        log.info("Pojo Order time: {} = {}", orderTime, DATE_TIME_LONG_FMT.format(orderTime));
       }
-      final Date completeTime = order.getCompleteTime();
+      final Instant completeTime = order.getCompleteTime();
       if (completeTime != null) {
-        log.info("Pojo Compl time: {} = {}", completeTime, format.format(completeTime));
+        log.info("Pojo Compl time: {} = {}", completeTime, DATE_TIME_LONG_FMT.format(completeTime));
       }
       return objectMapper.convertValue(order, CustomerOrderDto.class);
     });
@@ -297,7 +299,7 @@ public class OrderApiController implements OrderApi {
     return customerOrderRepository.save(order);
   }
   
-  Collection<CustomerOrder> findByOrderTimeTestOnly(Date findDate) {
+  Collection<CustomerOrder> findByOrderTimeTestOnly(Instant findDate) {
     return customerOrderRepository.findByOrderTimeAfter(findDate);
   }
   

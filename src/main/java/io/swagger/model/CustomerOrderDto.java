@@ -1,18 +1,13 @@
 package io.swagger.model;
 
-import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.model.MenuItemDto;
-import io.swagger.model.MenuItemOptionDto;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import org.threeten.bp.OffsetDateTime;
-import org.springframework.validation.annotation.Validated;
+import java.util.Objects;
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * CustomerOrderDto
@@ -34,6 +29,7 @@ public class CustomerOrderDto   {
   @JsonProperty("id")
   private Integer id = null;
 
+//  Todo: Should these be OffsetDateTime or Instant?
   @JsonProperty("orderTime")
   private OffsetDateTime orderTime = null;
 

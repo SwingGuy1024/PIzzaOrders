@@ -1,9 +1,10 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.LinkedList;
+import java.time.Instant;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Objects;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,10 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.persistence.Transient;
-
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -35,8 +33,8 @@ public class CustomerOrder {
   private Integer id;
   private Collection<MenuItemOption> options = new LinkedList<>();
   private Boolean complete = Boolean.FALSE;
-  private Date orderTime;
-  private Date completeTime;
+  private Instant orderTime;
+  private Instant completeTime;
   private MenuItem menuItem;
 
   @Id
@@ -94,22 +92,22 @@ public class CustomerOrder {
 //  }
 //
 
-  @Temporal(TemporalType.TIMESTAMP)
-  public Date getOrderTime() {
-    return cloneDate(orderTime);
+//  @Temporal(TemporalType.TIMESTAMP)
+  public Instant getOrderTime() {
+    return orderTime;
   }
 
-  public void setOrderTime(final Date orderTime) {
-    this.orderTime = cloneDate(orderTime);  
+  public void setOrderTime(final Instant orderTime) {
+    this.orderTime = orderTime;  
   }
 
-  @Temporal(TemporalType.TIMESTAMP)
-  public Date getCompleteTime() {
-    return cloneDate(completeTime);
+//  @Temporal(TemporalType.TIMESTAMP)
+  public Instant getCompleteTime() {
+    return completeTime;
   }
 
-  public void setCompleteTime(final Date completeTime) {
-    this.completeTime = cloneDate(completeTime);
+  public void setCompleteTime(final Instant completeTime) {
+    this.completeTime = completeTime;
   }
 
   @OneToOne
@@ -131,7 +129,7 @@ public class CustomerOrder {
     final CustomerOrder customerOrder = (CustomerOrder) o;
 
     final Integer theId = getId();
-    return (theId != null) ? theId.equals(customerOrder.getId()) : (customerOrder.getId() == null);
+    return Objects.equals(theId, customerOrder.getId());
   }
 
   @Override
@@ -139,6 +137,7 @@ public class CustomerOrder {
     return (getId() != null) ? getId().hashCode() : 0;
   }
 
+  @SuppressWarnings({"StringConcatenation", "ObjectToString", "MagicCharacter"})
   @Override
   public String toString() {
     return "CustomerOrder{" +
