@@ -19,15 +19,14 @@ public enum ResponseUtility {
   ;
   private static final Logger log = LoggerFactory.getLogger(ResponseUtility.class);
 
-  public static ResponseEntity<CreatedResponse> logAndMakeGenericErrorResponse(RuntimeException t) {
+  public static ResponseEntity<?> logAndMakeGenericErrorResponse(RuntimeException t) {
     log.debug(t.getMessage(), t);
     return new ResponseEntity<>(makeError(t), HttpStatus.BAD_REQUEST);
   }
   
   public static ResponseEntity<?> logAndMakeErrorResponse(ResponseException ex) {
     final HttpStatus httpStatus = ex.getHttpStatus();
-    log.debug(httpStatus.toString(), ex);
-    return new ResponseEntity<>(makeErrorFromResponseException(ex), httpStatus);
+    return new ResponseEntity<>(makeErrorFromResponseException(ex), httpStatus); // Also logs the exception
   }
 
   private static CreatedResponse makeErrorFromResponseException(ResponseException ex) {
@@ -35,6 +34,8 @@ public enum ResponseUtility {
     CreatedResponse error = new CreatedResponse();
     error.setHttpStatus(status.value());
     error.setMessage(String.format("%s: %s", status.getReasonPhrase(), ex.getMessage()));
+
+    // ResponseExceptions are logged as debug, since they're probably caused by a bad request.
     log.debug(String.format("%s: %s", status, error.getMessage()), ex);
     return error;
   }
@@ -44,7 +45,9 @@ public enum ResponseUtility {
     HttpStatus status = HttpStatus.BAD_REQUEST;
     error.setHttpStatus(status.value());
     error.setMessage(t.getMessage());
-    log.debug(String.format("%s: %s", status, error.getMessage()), t);
+
+    // RuntimeExceptions are logged as errors, since they're probably cause by bugs.
+    log.error(String.format("%s: %s", status, error.getMessage()), t);
     return error;
   }
 
@@ -126,6 +129,12 @@ public enum ResponseUtility {
     } catch (RuntimeException re) {
       //noinspection unchecked
       return (ResponseEntity<T>) logAndMakeGenericErrorResponse(re); // Sets HttpStatus to BAD_REQUEST
+    } catch (Error e) {
+
+      // Errors are logged as errors, since the're caused by serious issues like bugs or resource depletion.
+      log.error(e.getMessage(), e);
+      //noinspection ProhibitedExceptionThrown
+      throw e;
     }
   }
 }
