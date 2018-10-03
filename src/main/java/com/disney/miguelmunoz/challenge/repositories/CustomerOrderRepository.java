@@ -1,12 +1,9 @@
 package com.disney.miguelmunoz.challenge.repositories;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Collection;
-//import java.util.Date;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -18,13 +15,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Integer> {
-  Collection<CustomerOrder> findByOrderTimeAfterAndOrderTimeBeforeOrderByOrderTime(Instant startOfRange, Instant endOfRange);
+  Collection<CustomerOrder> findByOrderTimeAfterAndOrderTimeBeforeOrderByOrderTime(OffsetDateTime startOfRange, OffsetDateTime endOfRange);
   
   Collection<CustomerOrder> findByOrderTimeAfterAndOrderTimeBeforeAndCompleteOrderByOrderTime(
-      Instant startOfRange,
-      Instant endOfRange, 
+      OffsetDateTime startOfRange,
+      OffsetDateTime endOfRange, 
       Boolean complete
   );
 
-  Collection<CustomerOrder> findByOrderTimeAfter(Instant orderTime);
+  Collection<CustomerOrder> findByOrderTimeAfter(OffsetDateTime orderTime);
 }

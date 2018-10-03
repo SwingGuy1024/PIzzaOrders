@@ -1,7 +1,6 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,16 +29,9 @@ public enum PojoUtility {
 
   private static final Logger log = LoggerFactory.getLogger(PojoUtility.class);
   private static final ObjectMapper mapper = new ObjectMapper();
-//  public static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSZ";
-//  public static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ISO_INSTANT;
 	//	private static final Duration THREE_DAYS = Duration.ofDays(3L);
-	//	private static final DateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	//  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-//  public static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-//  public static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   public static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-  public static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ISO_OFFSET_DATE;
-//  private static final DateFormat timeFormat = new SimpleDateFormat(TIME_FORMAT, Locale.UK);
+  public static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
 
   private static final Iterable<Object> emptyIterable = Collections.unmodifiableCollection(Collections.emptyList());
 
@@ -131,7 +123,8 @@ public enum PojoUtility {
    */
   public static void confirmNull(Object object) throws ResponseException {
     if (object != null) {
-      throw new BadRequestException("non-null value");
+	    //noinspection StringConcatenation
+	    throw new BadRequestException("non-null value: " + object);
     }
   }
 

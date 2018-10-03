@@ -1,9 +1,7 @@
 package io.swagger.api;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -72,7 +70,7 @@ public class OrderApiControllerTest {
     
     // bad values: All these values should be null.
     customerOrderDto.setId(5);
-    customerOrderDto.setCompleteTime(OffsetDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
+    customerOrderDto.setCompleteTime(OffsetDateTime.now());
     customerOrderDto.setComplete(Boolean.TRUE);
     ResponseEntity<CreatedResponse> responseEntity = orderApiController.addOrder(customerOrderDto);
     assertBad(responseEntity);
@@ -119,7 +117,7 @@ public class OrderApiControllerTest {
     assertEquals(Boolean.TRUE, body.isComplete()); // Doesn't work yet.
     OffsetDateTime completeTime = body.getCompleteTime();
     OffsetDateTime nowTime = OffsetDateTime.now();
-    Duration duration = Duration.between(completeTime, nowTime);
+//    Duration duration = Duration.between(completeTime, nowTime);
     assertTrue(String.format("%s, !>= %s", completeTime, nowTime), nowTime.compareTo(completeTime) >= 0);
 
     // test of already complete
@@ -160,28 +158,27 @@ public class OrderApiControllerTest {
       log.info("id: {}, orderTime: {}, completeTime: {}", o.getId(), o.getOrderTime(), o.getCompleteTime());
     }
 
-    Instant threeDaysAgo = Instant.now().minus(THREE_DAYS);
+    OffsetDateTime threeDaysAgo = OffsetDateTime.now().minus(THREE_DAYS);
     Collection<CustomerOrder> timedOrder = orderApiController.findByOrderTimeTestOnly(threeDaysAgo);
     log.info("Search on 3 days ago produced {} results", timedOrder.size());
     for (CustomerOrder pastOrder : timedOrder) {
       log.info("id {} orderTime: {}", pastOrder.getId(), pastOrder.getOrderTime());
     }
 
-//    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-//    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    DateTimeFormatter dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-
-    deltaDaysSearchTest(dateFormat, 8, 5, 3, -5);
-    deltaDaysSearchTest(dateFormat, 7, 4, 3, -4);
-    deltaDaysSearchTest(dateFormat, 6, 3, 3, -3);
-    deltaDaysSearchTest(dateFormat, 4, 2, 2, -2);
+//    DateTimeFormatter dateFormat = DateTimeFormatter.ISO_LOCAL_DATE;
+//
+//    deltaDaysSearchTest(dateFormat, 8, 5, 3, -5);
+//    deltaDaysSearchTest(dateFormat, 7, 4, 3, -4);
+//    deltaDaysSearchTest(dateFormat, 6, 3, 3, -3);
+//    deltaDaysSearchTest(dateFormat, 4, 2, 2, -2);
     
 //    DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-//
-//    deltaDaysSearchTest(dateTimeFormat, 8, 5, 3, -5);
-//    deltaDaysSearchTest(dateTimeFormat, 7, 4, 3, -4);
-//    deltaDaysSearchTest(dateTimeFormat, 6, 3, 3, -3);
-//    deltaDaysSearchTest(dateTimeFormat, 4, 2, 2, -2);
+
+    DateTimeFormatter dateTimeFormat = PojoUtility.DATE_TIME_FMT;
+    deltaDaysSearchTest(dateTimeFormat, 8, 5, 3, -5);
+    deltaDaysSearchTest(dateTimeFormat, 7, 4, 3, -4);
+    deltaDaysSearchTest(dateTimeFormat, 6, 3, 3, -3);
+    deltaDaysSearchTest(dateTimeFormat, 4, 2, 2, -2);
     
     // test of addMenuItemOptionToOrder()
     
@@ -255,10 +252,10 @@ public class OrderApiControllerTest {
     CustomerOrder order = new CustomerOrder();
     order.setMenuItem(menuItem);
 //    final long dateMillis = System.currentTimeMillis() + ((OrderApiController.DAY_IN_MILLIS * deltaDays) + 3600000); // add an hour
-    Instant date = Instant.now().plus(deltaDays, ChronoUnit.DAYS).plus(ONE_HOUR);
+    OffsetDateTime date = OffsetDateTime.now().plus(deltaDays, ChronoUnit.DAYS).plus(ONE_HOUR);
     order.setOrderTime(date);
     if (complete) {
-      Instant fiveDaysLater = date.plus(5, ChronoUnit.DAYS);
+      OffsetDateTime fiveDaysLater = date.plus(5, ChronoUnit.DAYS);
       order.setComplete(true);
       order.setCompleteTime(fiveDaysLater);
     }

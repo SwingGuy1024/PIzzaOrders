@@ -1,7 +1,7 @@
 package com.disney.miguelmunoz.challenge.entities;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -33,8 +33,8 @@ public class CustomerOrder {
   private Integer id;
   private Collection<MenuItemOption> options = new LinkedList<>();
   private Boolean complete = Boolean.FALSE;
-  private Instant orderTime;
-  private Instant completeTime;
+  private OffsetDateTime orderTime;
+  private OffsetDateTime completeTime;
   private MenuItem menuItem;
 
   @Id
@@ -93,20 +93,20 @@ public class CustomerOrder {
 //
 
 //  @Temporal(TemporalType.TIMESTAMP)
-  public Instant getOrderTime() {
+  public OffsetDateTime getOrderTime() {
     return orderTime;
   }
 
-  public void setOrderTime(final Instant orderTime) {
+  public void setOrderTime(final OffsetDateTime orderTime) {
     this.orderTime = orderTime;  
   }
 
 //  @Temporal(TemporalType.TIMESTAMP)
-  public Instant getCompleteTime() {
+  public OffsetDateTime getCompleteTime() {
     return completeTime;
   }
 
-  public void setCompleteTime(final Instant completeTime) {
+  public void setCompleteTime(final OffsetDateTime completeTime) {
     this.completeTime = completeTime;
   }
 
