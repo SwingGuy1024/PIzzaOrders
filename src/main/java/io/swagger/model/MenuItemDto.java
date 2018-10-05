@@ -1,22 +1,18 @@
 package io.swagger.model;
 
-import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.model.MenuItemOptionDto;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.validation.annotation.Validated;
+import java.util.Objects;
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * MenuItemDto
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:16:24.928Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-10-05T10:50:14.597Z")
 
 public class MenuItemDto   {
   @JsonProperty("name")
@@ -79,7 +75,7 @@ public class MenuItemDto   {
 
   public MenuItemDto addAllowedOptionsItem(MenuItemOptionDto allowedOptionsItem) {
     if (this.allowedOptions == null) {
-      this.allowedOptions = new ArrayList<MenuItemOptionDto>();
+      this.allowedOptions = new ArrayList<>();
     }
     this.allowedOptions.add(allowedOptionsItem);
     return this;

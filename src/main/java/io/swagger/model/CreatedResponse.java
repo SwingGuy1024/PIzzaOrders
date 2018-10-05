@@ -1,26 +1,20 @@
 package io.swagger.model;
 
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.validation.annotation.Validated;
-import javax.validation.Valid;
-import javax.validation.constraints.*;
 
 /**
  * CreatedResponse
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:16:24.928Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-10-05T10:50:14.597Z")
 
 public class CreatedResponse   {
   @JsonProperty("id")
-  private String id = null;
-
-  @JsonProperty("httpStatus")
-  private Integer httpStatus = null;
+  private Integer id = null;
 
   @JsonProperty("message")
   private String message = null;
@@ -28,7 +22,7 @@ public class CreatedResponse   {
   @JsonProperty("body")
   private String body = null;
 
-  public CreatedResponse id(String id) {
+  public CreatedResponse id(Integer id) {
     this.id = id;
     return this;
   }
@@ -40,32 +34,12 @@ public class CreatedResponse   {
   @ApiModelProperty(value = "")
 
 
-  public String getId() {
+  public Integer getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(Integer id) {
     this.id = id;
-  }
-
-  public CreatedResponse httpStatus(Integer httpStatus) {
-    this.httpStatus = httpStatus;
-    return this;
-  }
-
-   /**
-   * Get httpStatus
-   * @return httpStatus
-  **/
-  @ApiModelProperty(value = "")
-
-
-  public Integer getHttpStatus() {
-    return httpStatus;
-  }
-
-  public void setHttpStatus(Integer httpStatus) {
-    this.httpStatus = httpStatus;
   }
 
   public CreatedResponse message(String message) {
@@ -120,14 +94,13 @@ public class CreatedResponse   {
     }
     CreatedResponse createdResponse = (CreatedResponse) o;
     return Objects.equals(this.id, createdResponse.id) &&
-        Objects.equals(this.httpStatus, createdResponse.httpStatus) &&
         Objects.equals(this.message, createdResponse.message) &&
         Objects.equals(this.body, createdResponse.body);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, httpStatus, message, body);
+    return Objects.hash(id, message, body);
   }
 
   @Override
@@ -136,7 +109,6 @@ public class CreatedResponse   {
     sb.append("class CreatedResponse {\n");
     
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
-    sb.append("    httpStatus: ").append(toIndentedString(httpStatus)).append("\n");
     sb.append("    message: ").append(toIndentedString(message)).append("\n");
     sb.append("    body: ").append(toIndentedString(body)).append("\n");
     sb.append("}");
@@ -147,7 +119,7 @@ public class CreatedResponse   {
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).
    */
-  private String toIndentedString(Object o) {
+  private String toIndentedString(java.lang.Object o) {
     if (o == null) {
       return "null";
     }

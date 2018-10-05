@@ -56,18 +56,17 @@ public class MenuItemApiController implements MenuItemApi {
       produces = {"application/json"},
       method = RequestMethod.POST)
   public ResponseEntity<CreatedResponse> addMenuItemOption(
-      @PathVariable("menuItemId") String menuItemId,
-      @Valid @RequestBody MenuItemOptionDto optionDto
+      @PathVariable("menuItemId") final Integer menuItemId,
+      @Valid @RequestBody final MenuItemOptionDto optionDto
   ) {
     return serveCreated(() -> {
       confirmNotEmpty(optionDto.getName()); // throws ResponseException
       MenuItemOption option = objectMapper.convertValue(optionDto, MenuItemOption.class);
-      Integer itemId = confirmAndDecodeInteger(menuItemId); // throws ResponseException
-      final MenuItem menuItem = menuItemRepository.findOne(itemId);
-      confirmFound(menuItem, itemId);
+      final MenuItem menuItem = menuItemRepository.findOne(menuItemId);
+      confirmFound(menuItem, menuItemId);
       option.setMenuItem(menuItem);
       MenuItemOption savedOption = menuItemOptionRepository.save(option);
-      return buildCreatedResponseWithId(savedOption.getId().toString());
+      return buildCreatedResponseWithId(savedOption.getId());
     });
   }
 
@@ -86,7 +85,7 @@ public class MenuItemApiController implements MenuItemApi {
       }
       MenuItem menuItem = convertMenuItem(menuItemDto);
       MenuItem savedItem = menuItemRepository.save(menuItem);
-      return buildCreatedResponseWithId(savedItem.getId().toString());
+      return buildCreatedResponseWithId(savedItem.getId());
     });
   }
 
@@ -106,13 +105,12 @@ public class MenuItemApiController implements MenuItemApi {
   @RequestMapping(value = "/menuItem/deleteOption/{optionId}",
       produces = {"application/json"},
       method = RequestMethod.DELETE)
-  public ResponseEntity<Void> deleteOption(@PathVariable("optionId") String optionId) {
+  public ResponseEntity<Void> deleteOption(@PathVariable("optionId") final Integer optionId) {
     return serveOK(() -> {
-      Integer id = confirmAndDecodeInteger(optionId);
-      log.debug("Deleting menuItemOption with id {} evaluates to {}", optionId, id);
+      log.debug("Deleting menuItemOption with id {}", optionId);
 
-      MenuItemOption itemToDelete = menuItemOptionRepository.findOne(id);
-      PojoUtility.confirmFound(itemToDelete, id);
+      MenuItemOption itemToDelete = menuItemOptionRepository.findOne(optionId);
+      PojoUtility.confirmFound(itemToDelete, optionId);
 
       // Before I can successfully delete the menuItemOption, I first have to set its menuItem to null. If I don't
       // do that, the delete call will fail. It doesn't help to set Cascade to Remove in the @ManyToOne annotation in 

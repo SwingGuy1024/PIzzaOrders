@@ -11,8 +11,9 @@ import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
+import com.disney.miguelmunoz.challenge.exception.BadRequestException;
+import com.disney.miguelmunoz.challenge.exception.NotFoundException;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
 import io.swagger.model.MenuItemDto;
@@ -37,7 +38,7 @@ import static org.junit.Assert.*;
  *
  * @author Miguel Mu\u00f1oz
  */
-@SuppressWarnings({"CallToNumericToString", "HardCodedStringLiteral"})
+@SuppressWarnings({"CallToNumericToString", "HardCodedStringLiteral", "MagicNumber"})
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @Component
@@ -52,8 +53,6 @@ public class OrderApiControllerTest {
   @Autowired
   private OrderApiController orderApiController;
 
-  @Autowired
-  private ObjectMapper mapper;
   private static final Duration ONE_DAY = Duration.ofDays(1);
   private static final Duration ONE_HOUR = Duration.ofHours(1);
 
@@ -61,7 +60,7 @@ public class OrderApiControllerTest {
   public void testAllOrderMethods() throws ResponseException {
     MenuItemDto pizzaMenuItemDto = MenuItemApiControllerTest.createPizzaMenuItem();
     ResponseEntity<CreatedResponse> menuResponse = menuItemApiController.addMenuItem(pizzaMenuItemDto);
-    final String pizzaItemId = menuResponse.getBody().getId();
+    final Integer pizzaItemId = menuResponse.getBody().getId();
     assert pizzaItemId != null;
     
     // Test of addOrder()
@@ -72,25 +71,34 @@ public class OrderApiControllerTest {
     customerOrderDto.setId(5);
     customerOrderDto.setCompleteTime(OffsetDateTime.now());
     customerOrderDto.setComplete(Boolean.TRUE);
-    ResponseEntity<CreatedResponse> responseEntity = orderApiController.addOrder(customerOrderDto);
-    assertBad(responseEntity);
+    ResponseEntity<CreatedResponse> responseEntity;
+    try {
+      responseEntity = orderApiController.addOrder(customerOrderDto);
+      fail(responseEntity.toString());
+    } catch (BadRequestException ignored) { }
 
     customerOrderDto.setId(null);
-    responseEntity = orderApiController.addOrder(customerOrderDto);
-    assertBad(responseEntity);
+    try {
+      responseEntity = orderApiController.addOrder(customerOrderDto);
+      fail(responseEntity.toString());
+    } catch (BadRequestException ignored) { }
     
     customerOrderDto.setCompleteTime(null);
-    responseEntity = orderApiController.addOrder(customerOrderDto);
-    assertBad(responseEntity);
+    try {
+      responseEntity = orderApiController.addOrder(customerOrderDto);
+      fail(responseEntity.toString());
+    } catch (BadRequestException ignored) { }
 
     customerOrderDto.setMenuItem(pizzaMenuItemDto);
-    responseEntity = orderApiController.addOrder(customerOrderDto);
-    assertBad(responseEntity);
+    try {
+      responseEntity = orderApiController.addOrder(customerOrderDto);
+      fail(responseEntity.toString());
+    } catch (BadRequestException ignored) { }
 
     customerOrderDto.setComplete(Boolean.FALSE);
     responseEntity = orderApiController.addOrder(customerOrderDto);
     assertCreated(responseEntity);
-    String idString = responseEntity.getBody().getId();
+    Integer id = responseEntity.getBody().getId();
 
     List<CustomerOrder> orders = orderApiController.getAllTestOnly();
     assertEquals(1, orders.size());
@@ -100,17 +108,20 @@ public class OrderApiControllerTest {
     // Test of CompleteOrder
 
     // Test bad input (not found)    
-    ResponseEntity<CreatedResponse> createResponse = orderApiController.completeOrder("10000");
-    assertNotFound(createResponse);
+    ResponseEntity<CreatedResponse> createResponse;
+    try {
+      createResponse = orderApiController.completeOrder(10000);
+      fail(createResponse.toString());
+    } catch (NotFoundException ignored) { }
 
-    log.info("Completing order with id = {}", idString);
-    createResponse = orderApiController.completeOrder(idString);
+    log.info("Completing order with id = {}", id);
+    createResponse = orderApiController.completeOrder(id);
     assertAccepted(createResponse);
-    final ResponseEntity<CustomerOrderDto> customerOrderDtoResponseEntity = orderApiController.searchForOrder(idString);
+    final ResponseEntity<CustomerOrderDto> customerOrderDtoResponseEntity = orderApiController.searchForOrder(id);
     CustomerOrderDto body = customerOrderDtoResponseEntity.getBody();
     log.info("DTO Order time: {}", body.getOrderTime());
     log.info("Dto Compl time: {}", body.getCompleteTime());
-    assertNotNull(String.format("Not found at id %s", idString), body);
+    assertNotNull(String.format("Not found at id %s", id), body);
     log.info("Found DTO order with id = {}", body.getId());
     //noinspection HardcodedLineSeparator
     log.info("OrderDto: \n{}", body.toString());
@@ -121,27 +132,32 @@ public class OrderApiControllerTest {
     assertTrue(String.format("%s, !>= %s", completeTime, nowTime), nowTime.compareTo(completeTime) >= 0);
 
     // test of already complete
-    createResponse = orderApiController.completeOrder(idString);
-    assertEquals(HttpStatus.BAD_REQUEST, createResponse.getStatusCode());
-    assertThat(createResponse.getBody().getMessage(), containsString("Already Complete"));
+    try {
+      createResponse = orderApiController.completeOrder(id);
+      fail(createResponse.toString());
+    } catch (BadRequestException e) {
+      assertThat(e.getMessage(), containsString("Already Complete"));
+    }
 
     // Test of delete
+
+    try {
+      ResponseEntity<Void> badDeleteResponse = orderApiController.deleteOrder(null);
+      fail(badDeleteResponse.toString());
+    } catch (BadRequestException ignored) { }
     
-    ResponseEntity<Void> badDeleteResponse = orderApiController.deleteOrder("BAD_ID");
-    assertBad(badDeleteResponse);
-    
-    ResponseEntity<Void> deleteResponse = orderApiController.deleteOrder(idString);
+    ResponseEntity<Void> deleteResponse = orderApiController.deleteOrder(id);
     assertEquals(HttpStatus.ACCEPTED, deleteResponse.getStatusCode());
     
     // Make sure it got deleted.
     List<CustomerOrder> allOrders = orderApiController.getAllTestOnly();
     for (CustomerOrder customerOrder: allOrders) {
-      assertNotEquals(idString, customerOrder.getId().toString());
+      assertNotEquals(id, customerOrder.getId().toString());
     }
     
     // Test of searchByComplete
 
-    MenuItem menuItem = menuItemApiController.getMenuItemTestOnly(PojoUtility.confirmAndDecodeInteger(pizzaItemId));    
+    MenuItem menuItem = menuItemApiController.getMenuItemTestOnly(pizzaItemId);    
 
     CustomerOrder orderM5Complete = makeOrder(-5, menuItem, true);
     CustomerOrder orderM4Complete = makeOrder(-4, menuItem, true);
@@ -185,16 +201,20 @@ public class OrderApiControllerTest {
     Integer orderM5cId = orderM5Complete.getId();
     Collection<MenuItemOption> options = orderM5Complete.getMenuItem().getAllowedOptions();
     MenuItemOption option = options.iterator().next();
-    final String menuOptionIdString = option.getId().toString();
+    final int menuOptionId = option.getId();
 
-    ResponseEntity<CreatedResponse> pizzaResponse = orderApiController.addMenuItemOptionToOrder("bad", menuOptionIdString);
-    assertBad(pizzaResponse);
-    pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), "bad");
-    assertBad(pizzaResponse);
-    pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), "10000");
-    assertNotFound(pizzaResponse);
-    assertThat(pizzaResponse.getBody().getMessage(), containsString("Missing object at id 10000"));
-    pizzaResponse = orderApiController.addMenuItemOptionToOrder(orderM5cId.toString(), menuOptionIdString);
+    ResponseEntity<CreatedResponse> pizzaResponse;
+
+    try {
+      pizzaResponse = orderApiController.addMenuItemOptionToCustomerOrder(orderM5cId, 10000);
+      fail(pizzaResponse.toString());
+    } catch (NotFoundException e) {
+      assertThat(e.getMessage(), containsString("Missing object at id 10000"));
+    } catch(Throwable t) {
+      log.error("Strange exception of {}: {}", t.getClass().getName(), t.getMessage(), t);
+    }
+
+    pizzaResponse = orderApiController.addMenuItemOptionToCustomerOrder(orderM5cId, menuOptionId);
     assertStatus(HttpStatus.ACCEPTED, pizzaResponse);
     
     CustomerOrder revisedOrder = orderApiController.findByIdTestOnly(orderM5cId);
@@ -212,12 +232,11 @@ public class OrderApiControllerTest {
    */
   private void deltaDaysSearchTest(final DateTimeFormatter dateFormat, final int fullCount, final int trueCount, final int falseCount, final int delta) {
     final OffsetDateTime nowTime = OffsetDateTime.now();
-    String nowTimeTxt = dateFormat.format(nowTime);
 
     // Search from 5 days earlier to now 
-    final String startOfRange = delta(nowTime, delta, dateFormat);
+    final OffsetDateTime startOfRange = delta(nowTime, delta);
     ResponseEntity<List<CustomerOrderDto>> dtoListResponse 
-        = orderApiController.searchByComplete(startOfRange, null, nowTimeTxt);
+        = orderApiController.searchByComplete(startOfRange, null, nowTime);
     assertOkay(dtoListResponse);
     List<CustomerOrderDto> dtoList = dtoListResponse.getBody();
     assertNotNull(dtoList);
@@ -228,11 +247,11 @@ public class OrderApiControllerTest {
       log.info("id {} startTime {}", dto.getId(), dto.getOrderTime());
     }
 
-    dtoListResponse = orderApiController.searchByComplete(startOfRange, true, nowTimeTxt);
+    dtoListResponse = orderApiController.searchByComplete(startOfRange, true, nowTime);
     dtoList = dtoListResponse.getBody();
     assertEquals(trueCount, dtoList.size());
 
-    dtoListResponse = orderApiController.searchByComplete(startOfRange, false, nowTimeTxt);
+    dtoListResponse = orderApiController.searchByComplete(startOfRange, false, nowTime);
     dtoList = dtoListResponse.getBody();
     assertEquals(falseCount, dtoList.size());
   }
@@ -241,11 +260,10 @@ public class OrderApiControllerTest {
    * Returns a time the specified number of days from the given date
    * @param date The given date
    * @param deltaDays The number of days to add or subtract
-   * @param fmt The DateFormat instance to format the date
    * @return The resulting date, as a String.
    */
-  private String delta(OffsetDateTime date, int deltaDays, DateTimeFormatter fmt) {
-    return fmt.format(date.plus(deltaDays, ChronoUnit.DAYS));
+  private OffsetDateTime delta(OffsetDateTime date, int deltaDays) {
+    return date.plus(deltaDays, ChronoUnit.DAYS);
   }
   
   private CustomerOrder makeOrder(int deltaDays, MenuItem menuItem, boolean complete) {
@@ -273,14 +291,6 @@ public class OrderApiControllerTest {
     assertStatus(HttpStatus.CREATED, responseEntity);
   }
 
-  private void assertBad(final ResponseEntity<?> responseEntity) {
-    assertStatus(HttpStatus.BAD_REQUEST, responseEntity);
-  }
-
-  private void assertNotFound(final ResponseEntity<?> responseEntity) {
-    assertStatus(HttpStatus.NOT_FOUND, responseEntity);
-  }
-  
   private void assertAccepted(final ResponseEntity<?> responseEntity) {
     assertStatus(HttpStatus.ACCEPTED, responseEntity);
   }

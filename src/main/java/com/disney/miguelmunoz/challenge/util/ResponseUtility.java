@@ -1,5 +1,6 @@
 package com.disney.miguelmunoz.challenge.util;
 
+import com.disney.miguelmunoz.challenge.exception.InternalServerErrorException;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import io.swagger.model.CreatedResponse;
 import org.slf4j.Logger;
@@ -19,39 +20,13 @@ public enum ResponseUtility {
   ;
   private static final Logger log = LoggerFactory.getLogger(ResponseUtility.class);
 
-  public static ResponseEntity<?> logAndMakeGenericErrorResponse(RuntimeException t) {
-    log.debug(t.getMessage(), t);
-    return new ResponseEntity<>(makeError(t), HttpStatus.BAD_REQUEST);
+  public static InternalServerErrorException logAndMakeGenericErrorResponse(RuntimeException t) {
+    log.error(t.getMessage(), t);
+    return new InternalServerErrorException(t);
   }
   
-  public static ResponseEntity<?> logAndMakeErrorResponse(ResponseException ex) {
-    final HttpStatus httpStatus = ex.getHttpStatus();
-    return new ResponseEntity<>(makeErrorFromResponseException(ex), httpStatus); // Also logs the exception
-  }
 
-  private static CreatedResponse makeErrorFromResponseException(ResponseException ex) {
-    HttpStatus status = ex.getHttpStatus();
-    CreatedResponse error = new CreatedResponse();
-    error.setHttpStatus(status.value());
-    error.setMessage(String.format("%s: %s", status.getReasonPhrase(), ex.getMessage()));
-
-    // ResponseExceptions are logged as debug, since they're probably caused by a bad request.
-    log.debug(String.format("%s: %s", status, error.getMessage()), ex);
-    return error;
-  }
-
-  private static CreatedResponse makeError(RuntimeException t) {
-    CreatedResponse error = new CreatedResponse();
-    HttpStatus status = HttpStatus.BAD_REQUEST;
-    error.setHttpStatus(status.value());
-    error.setMessage(t.getMessage());
-
-    // RuntimeExceptions are logged as errors, since they're probably cause by bugs.
-    log.error(String.format("%s: %s", status, error.getMessage()), t);
-    return error;
-  }
-
-  public static CreatedResponse buildCreatedResponseWithId(String id) {
+  public static CreatedResponse buildCreatedResponseWithId(Integer id) {
     CreatedResponse response = new CreatedResponse();
     response.setId(id);
     return response;
@@ -65,7 +40,7 @@ public enum ResponseUtility {
    * @see #serve(HttpStatus, ServiceMethod) 
    * @see ServiceMethod#doService() 
    */
-  public static <T> ResponseEntity<T> serveCreated(ServiceMethod<T> method) {
+  public static <T> ResponseEntity<T> serveCreated(ServiceMethod<T> method) throws ResponseException {
     assert method != null;
     return serve(HttpStatus.CREATED, method);
   }
@@ -79,7 +54,7 @@ public enum ResponseUtility {
    * @see #serve(HttpStatus, ServiceMethod)
    * @see ServiceMethod#doService()
    */
-  public static <T> ResponseEntity<T> serveOK(ServiceMethod<T> method) {
+  public static <T> ResponseEntity<T> serveOK(ServiceMethod<T> method) throws ResponseException {
     return serve(HttpStatus.OK, method);
   }
 
@@ -118,17 +93,18 @@ public enum ResponseUtility {
    * @see ServiceMethod#doService() 
    * @see ResponseException
    */
-  public static <T> ResponseEntity<T> serve(HttpStatus successStatus, ServiceMethod<T> method) {
+  public static <T> ResponseEntity<T> serve(HttpStatus successStatus, ServiceMethod<T> method) throws ResponseException {
     assert method != null;
     try {
       // All of the work of the service goes into the method.doService() implementation.
       return new ResponseEntity<>(method.doService(), successStatus);
     } catch (ResponseException e) {
-      //noinspection unchecked
-      return (ResponseEntity<T>) logAndMakeErrorResponse(e); // Gets the HttpStatus from the ResponseException
+      log.debug(e.getLocalizedMessage(), e);
+      throw e;
     } catch (RuntimeException re) {
-      //noinspection unchecked
-      return (ResponseEntity<T>) logAndMakeGenericErrorResponse(re); // Sets HttpStatus to BAD_REQUEST
+//      //noinspection unchecked
+//      return (ResponseEntity<T>) 
+      throw logAndMakeGenericErrorResponse(re); // Sets HttpStatus to INTERNAL_SERVER_ERROR
     } catch (Error e) {
 
       // Errors are logged as errors, since the're caused by serious issues like bugs or resource depletion.

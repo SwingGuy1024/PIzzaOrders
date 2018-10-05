@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   title: Customer Orders API
   contact:
-    email: SwingGuy1024@yahoo.com 
+    email: SwingGuy1024@yahoo.com
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -67,7 +67,8 @@ paths:
         name: menuItemId
         required: true
         description: ID of the MenuItem getting the new option
-        type: string
+        type: integer
+        format: int32
       - in: body
         required: true
         name: option
@@ -95,7 +96,8 @@ paths:
         name: optionId
         required: true
         description: ID of the MenuItemOpton to delete
-        type: string
+        type: integer
+        format: int32
       produces: 
       - application/json
       responses:
@@ -107,9 +109,9 @@ paths:
             $ref: '#/definitions/CreatedResponse'
   /order:
     put:
-      summary: Place an order
+      summary: Start a new order
       description: |
-        Place an order of a MenuItem, with a list of MenuItemOptions. This creates a new order for a specific MenuItem, with no options yet.
+        Place an order of a MenuItem, with a list of MenuItemOptions. This creates a new ServerOrder, with a single CustomerOrder for a specific MenuItem, with no options yet.
       operationId: addOrder
       consumes:
       - application/json
@@ -161,14 +163,15 @@ paths:
     post:
       summary: Mark an order completed
       description: |
-        Mark an order complete. A Complete order is an order that has been delivered.
+        Mark a server order complete. A Complete server order is an order that has been delivered.
       operationId: completeOrder
       parameters:
       - in: path
         name: id
         description: The id of the completed order
         required: true
-        type: string
+        type: integer
+        format: int32
       produces: 
       - application/json
       responses:
@@ -193,7 +196,8 @@ paths:
         name: id
         description: id of the order to search for
         required: true
-        type: string
+        type: integer
+        format: int32
       responses:
         200:
           description: search results found
@@ -213,7 +217,8 @@ paths:
         name: id
         description: The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.
         required: true
-        type: string
+        type: integer
+        format: int32
       produces: 
       - application/json
       responses:
@@ -225,23 +230,54 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/CreatedResponse'
-  /order/addMenuItemOption/{order_id}/{menu_option_id}:
+  /order/addMenuItemOption/{customer_order_id}/{menu_option_id}:
+    post:
+      summary: Add a menuItemOption to a customer order.
+      description: |
+        Add a menu item option, taken from the Order's menu item, to the specified open order.
+      operationId: addMenuItemOptionToCustomerOrder
+      parameters:
+      - in: path
+        name: customer_order_id
+        description: The id of the customer order
+        required: true
+        type: integer
+        format: int32
+      - in: path
+        name: menu_option_id
+        description: The id of Menu Item Option to add
+        required: true
+        type: integer
+        format: int32
+      produces:
+      - application/json
+      responses:
+        202:
+          description: Addition successful
+          schema:
+            $ref: '#/definitions/CreatedResponse'
+        400:
+          description: Bad Request
+ 
+  /order/addCustomerOrder/{order_id}/{menu_item_id}:
     post:
       summary: Add a menuItemOption to the order.
       description: |
-        Add a menu item option, taken from the Order's menu item, to the specified open order.
-      operationId: addMenuItemOptionToOrder
+        Add a new menu item to the specified open server order.
+      operationId: addMenuItemToServerOrder
       parameters:
       - in: path
         name: order_id
         description: The id of the customer order
         required: true
-        type: string
+        type: integer
+        format: int32
       - in: path
-        name: menu_option_id
+        name: menu_item_id
         description: The id of Menu Item Option to add
         required: true
-        type: string
+        type: integer
+        format: int32
       produces: 
       - application/json
       responses:
@@ -255,7 +291,7 @@ paths:
     get:
       summary: search for an order by completed status and order date, over a date range
       description: |
-        Retrieve an order by its completed status, with a date range. Returns an array of items. If you leave the starting date blank, it will default to the current date. If you leave the ending field blank, it will default to the start date. Both dates are inclusive, so searching for the same day in both fields will search for that day. Leaving the Complete field blank will cause it to search for all orders, regardless of their complete status. Formats for starting and ending dates are yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time.
+        Retrieve a server order by its completed status, with a date range. Returns an array of items. If you leave the starting date blank, it will default to the current date. If you leave the ending field blank, it will default to the start date. Both dates are inclusive, so searching for the same day in both fields will search for that day. Leaving the Complete field blank will cause it to search for all orders, regardless of their complete status. Formats for starting and ending dates are yyyy-MM-ddX or yyyy-MM-ddTHH:mmX for a specific time.
       operationId: searchByComplete
       produces:
       - applicaton/json
@@ -272,16 +308,20 @@ paths:
         description: |
           Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format is yyyy-MM-dd or yyyy-MM-dd HH-mm for a specific time. Except the dash between HH and mm is supposed to be a colon, but I can't show it with the build software I'm using.
         type: string
+        format: date-time
       - in: query
         name: endingDate
         description: |
-          End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format is yyyy-MM-dd or yyyy-MM-dd HH:mm for a specific time
+          End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format is yyyy-MM-ddX or yyyy-MM-ddTHH:mmX for a specific time
         type: string
+        format: date-time
         required: false
       responses:
         200:
           description: search results found
           schema:
+            # I could return a ServerOrderDto or an array of CustomerOrderDtos
+            # A ServerOrderDto is just an array.
             type: array
             items:
               $ref: '#/definitions/CustomerOrderDto'
@@ -301,7 +341,8 @@ definitions:
       name:
         type: string
       deltaPrice:
-        type: string
+        type: number
+        format: int32
         description: Floating point price. Strings are easier to work with.
       id:
         type: integer
@@ -324,7 +365,6 @@ definitions:
   CustomerOrderDto:
     properties:
       menuItem:
-        type: object
         $ref: '#/definitions/MenuItemDto'
       options:
         type: array
@@ -343,11 +383,10 @@ definitions:
         type: string
         format: date-time
   CreatedResponse:
+    # This type is primarily to return the id of the 
+    # created object.
     properties:
       id:
-        type: string
-        format: int32
-      httpStatus:
         # Note on numbers:
         #   string  int32 gives String
         #   integer int32 gives Integer
@@ -361,12 +400,12 @@ definitions:
         description: Json description of result.
         type: string
     required:
-      - code
-      - message
+    - code
+    - message
 # Added by API Auto Mocking Plugin
 host: virtserver.swaggerhub.com
 schemes:
- - https
- - http
+- https
+- http
 # Added by API Auto Mocking Plugin
 basePath: /NeptuneDreams/FoodOrders/1.0.0

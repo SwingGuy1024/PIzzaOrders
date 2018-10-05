@@ -12,8 +12,9 @@ import java.util.Set;
 import com.disney.miguelmunoz.challenge.Application;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
+import com.disney.miguelmunoz.challenge.exception.BadRequestException;
+import com.disney.miguelmunoz.challenge.exception.NotFoundException;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
@@ -26,7 +27,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
  *
  * @author Miguel Mu\u00f1oz
  */
-@SuppressWarnings({"CallToNumericToString", "MagicCharacter"})
+@SuppressWarnings({"CallToNumericToString", "MagicCharacter", "MagicNumber"})
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @Component
@@ -46,23 +46,22 @@ public class MenuItemApiControllerTest {
   @Autowired
   private MenuItemApiController menuItemApiController;
   
-  @Autowired
-  private ObjectMapper objectMapper;
-  
   // Tests of addMenuItem()
   
   @Test
   public void testAddMenuItemBadInput() {
     MenuItemOptionDto menuItemOption = new MenuItemOptionDto();
     menuItemOption.setName("");
-    menuItemOption.setDeltaPrice("5.00");
+    menuItemOption.setDeltaPrice(new BigDecimal("5.00"));
 
     MenuItemDto menuItemDto = new MenuItemDto();
     menuItemDto.setAllowedOptions(Collections.singletonList(menuItemOption));
     menuItemDto.setName("BadItem");
     menuItemDto.setItemPrice("0.50");
-    ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
-    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+	  try {
+		  ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
+		  fail(responseEntity.toString());
+    } catch (BadRequestException ignored) { }
   }
   
   @Test
@@ -77,7 +76,7 @@ public class MenuItemApiControllerTest {
     ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
     assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
     CreatedResponse body = responseEntity.getBody();
-    Integer id = confirmAndDecodeInteger(body.getId());
+    Integer id = body.getId();
     if (id != null) {
       MenuItem item = menuItemApiController.getMenuItemTestOnly(id);
       assertEquals("0.50", item.getItemPrice().toString());
@@ -96,7 +95,7 @@ public class MenuItemApiControllerTest {
   private static MenuItemOptionDto makeMenuItemOptionDto(String name, String price) {
     MenuItemOptionDto oliveOption = new MenuItemOptionDto();
     oliveOption.setName(name);
-    oliveOption.setDeltaPrice(price);
+    oliveOption.setDeltaPrice(new BigDecimal(price));
     return oliveOption;
   }
 
@@ -104,25 +103,24 @@ public class MenuItemApiControllerTest {
   
   @Test
   public void testAddOptionBadInput() {
-    isBadRequest(menuItemApiController.addMenuItemOption("5", makeMenuItemOptionDto("olives","X")));
-    isBadRequest(menuItemApiController.addMenuItemOption("5", makeMenuItemOptionDto("olives","0.x0")));
-    isBadRequest(menuItemApiController.addMenuItemOption("5", makeMenuItemOptionDto("olives","1,000.00")));
-    isBadRequest(menuItemApiController.addMenuItemOption("5", makeMenuItemOptionDto("","0.40")));
-    isBadRequest(menuItemApiController.addMenuItemOption("x", makeMenuItemOptionDto("olives","0.30")));
-    isBadRequest(menuItemApiController.addMenuItemOption("x", makeMenuItemOptionDto(null,"0.30")));
+    isNotFound(5, makeMenuItemOptionDto("olives","1000.00"));
+    isBadRequest(5, makeMenuItemOptionDto("","0.40"));
   }
 
-  private void isBadRequest(final ResponseEntity<CreatedResponse> stringResponseEntity) {
-    if (!Objects.equals(stringResponseEntity.getStatusCode(), HttpStatus.BAD_REQUEST)) {
-      //noinspection ProhibitedExceptionThrown
-      throw new RuntimeException(String.format(
-          "status %s with String \"%s\" should be BAD_REQUEST", 
-          stringResponseEntity.getStatusCode(), 
-          stringResponseEntity.getBody()
-      ));
-    }
+  private void isBadRequest(int id, MenuItemOptionDto optionDto) {
+    try {
+      final ResponseEntity<CreatedResponse> stringResponseEntity = menuItemApiController.addMenuItemOption(id, optionDto);
+      fail(stringResponseEntity.toString());
+    } catch (BadRequestException ignored) { }
   }
-  
+
+  private void isNotFound(int id, MenuItemOptionDto optionDto) {
+    try {
+      final ResponseEntity<CreatedResponse> stringResponseEntity = menuItemApiController.addMenuItemOption(id, optionDto);
+      fail(stringResponseEntity.toString());
+    } catch (NotFoundException ignored) { }
+  }
+
   // Test of deleteOption()
   
   @Test
@@ -131,7 +129,7 @@ public class MenuItemApiControllerTest {
     ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
     CreatedResponse body = responseEntity.getBody();
     System.out.printf("Body: <%s>%n", body);
-    Integer id = confirmAndDecodeInteger(body.getId());
+    Integer id = body.getId();
     
     MenuItem item = menuItemApiController.getMenuItemTestOnly(id);
     List<String> nameList = new LinkedList<>();
@@ -139,20 +137,19 @@ public class MenuItemApiControllerTest {
       nameList.add(option.getName());
     }
     assertThat(nameList, hasItems("pepperoni", "sausage", "mushrooms", "bell peppers", "olives", "onions"));
-    
-    
-    ResponseEntity<Void> badResponseOne = menuItemApiController.deleteOption("BAD");
-    assertEquals(HttpStatus.BAD_REQUEST, badResponseOne.getStatusCode());
 
-    ResponseEntity<Void> badResponseTwo = menuItemApiController.deleteOption("100000");
-    assertEquals(HttpStatus.NOT_FOUND, badResponseTwo.getStatusCode());
+
+	  try {
+		  ResponseEntity<Void> badResponseTwo = menuItemApiController.deleteOption(100000);
+		  fail(badResponseTwo.toString());
+    } catch (NotFoundException ignored) { }
 
     MenuItemOption removedOption = item.getAllowedOptions().iterator().next();
     String removedName = removedOption.getName();
     int removedId = removedOption.getId();
     assertTrue(hasName(item, removedName));
     assertNotNull(menuItemApiController.getMenuItemOptionTestOnly(removedId));
-    ResponseEntity<Void> goodResponse = menuItemApiController.deleteOption(removedOption.getId().toString());
+    ResponseEntity<Void> goodResponse = menuItemApiController.deleteOption(removedOption.getId());
     
     assertEquals(HttpStatus.OK, goodResponse.getStatusCode());
     
@@ -187,13 +184,5 @@ public class MenuItemApiControllerTest {
       }
     }
     return false;
-  }
-
-  private static MenuItemOption makeOption(String name, String price, MenuItem menuItem) {
-    MenuItemOption option = new MenuItemOption();
-    option.setName(name);
-    option.setDeltaPrice(new BigDecimal(price));
-    option.setMenuItem(menuItem);
-    return option;
   }
 }

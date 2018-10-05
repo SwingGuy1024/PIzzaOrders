@@ -1,8 +1,6 @@
 package io.swagger.api;
 
-import java.time.DateTimeException;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -13,12 +11,10 @@ import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
-import com.disney.miguelmunoz.challenge.exception.BadRequestException;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
-import com.disney.miguelmunoz.challenge.util.ReturnableReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
@@ -76,21 +72,20 @@ public class OrderApiController implements OrderApi {
   @RequestMapping(value = "/order/addMenuItemOption/{order_id}/{menu_option_id}",
       produces = {"application/json"},
       method = RequestMethod.POST)
-  public ResponseEntity<CreatedResponse> addMenuItemOptionToOrder(
-      @PathVariable("order_id") final String orderId, 
-      @PathVariable("menu_option_id")final String menuOptionId
+  public ResponseEntity<CreatedResponse> addMenuItemOptionToCustomerOrder(
+      @PathVariable("order_id") final Integer customerOrderId,
+      @PathVariable("menu_option_id") final Integer menuOptionId
   ) {
     return serve(HttpStatus.ACCEPTED, () -> {
-      CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(orderId)); // throws ResponseException
-      confirmFound(order, orderId);
+      CustomerOrder order = customerOrderRepository.findOne(customerOrderId); // throws ResponseException
+      confirmFound(order, customerOrderId);
       MenuItem item = order.getMenuItem();
-      final Integer optionId = confirmAndDecodeInteger(menuOptionId);
-      confirmItemHasOptionId(item, optionId); // throws ResponseException
-      MenuItemOption option = menuItemOptionRepository.findOne(optionId); // throws ResponseException
+      confirmItemHasOptionId(item, menuOptionId); // throws ResponseException
+      MenuItemOption option = menuItemOptionRepository.findOne(menuOptionId); // throws ResponseException
       order.getOptions().add(option);
       CustomerOrder updatedOrder = customerOrderRepository.save(order);
 
-      return buildCreatedResponseWithId(updatedOrder.getId().toString());
+      return buildCreatedResponseWithId(updatedOrder.getId());
     });
   }
 
@@ -127,7 +122,7 @@ public class OrderApiController implements OrderApi {
       MenuItem savedMenuItem = menuItemRepository.save(menuItem);
       orderEntity.setMenuItem(savedMenuItem);
       CustomerOrder savedOrder = customerOrderRepository.save(orderEntity);
-      return buildCreatedResponseWithId(savedOrder.getId().toString());
+      return buildCreatedResponseWithId(savedOrder.getId());
     });
   }
 
@@ -135,9 +130,9 @@ public class OrderApiController implements OrderApi {
   @RequestMapping(value = "/order/complete/{id}",
       produces = {"application/json"},
       method = RequestMethod.POST)
-  public ResponseEntity<CreatedResponse> completeOrder(@PathVariable("id") final String id) {
+  public ResponseEntity<CreatedResponse> completeOrder(@PathVariable("id") final Integer id) {
     return serve(HttpStatus.ACCEPTED, () -> {
-      CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(id));
+      CustomerOrder order = customerOrderRepository.findOne(id);
       confirmFound(order, id);
       confirmEqual("Already Complete", Boolean.FALSE, order.getComplete()); // Test searches for this String.
       order.setComplete(Boolean.TRUE);
@@ -155,10 +150,10 @@ public class OrderApiController implements OrderApi {
   @RequestMapping(value = "/order/{id}",
       produces = {"application/json"},
       method = RequestMethod.DELETE)
-  public ResponseEntity<Void> deleteOrder(@PathVariable("id") final String id) {
+  public ResponseEntity<Void> deleteOrder(@PathVariable("id") final Integer id) {
     return serve(HttpStatus.ACCEPTED, () -> {
-      final Integer idInt = confirmAndDecodeInteger(id);
-      customerOrderRepository.delete(idInt);
+      confirmNeverNull(id);
+      customerOrderRepository.delete(id);
       return null;
     });
   }
@@ -168,35 +163,18 @@ public class OrderApiController implements OrderApi {
       produces = {"application/json"},
       method = RequestMethod.GET)
   public ResponseEntity<List<CustomerOrderDto>> searchByComplete(
-      final String startingDate,
-      final Boolean complete,
-      final String endingDate
+      final OffsetDateTime startingDate, 
+      final Boolean complete, 
+      final OffsetDateTime endingDate
   ) {
     return serveOK(() -> {
       // Records whether it parsed both Date and Time or just Date.
-      ReturnableReference<Boolean> usesTime = new ReturnableReference<>();
-	    OffsetDateTime startTime = parseDate(startingDate, null, usesTime); // throws ResponseException
-
-      // works even if usesTime.getValue() is null. (Actually, I never expect it to be null.)
-      //noinspection BooleanVariableAlwaysNegated
-      @SuppressWarnings("EqualsReplaceableByObjectsCall")
-      boolean timeUsed = Boolean.TRUE.equals(usesTime.getValue());
-
-      // startTime here is the default value. So if endingDate is empty or null, it uses the start date for both
-      // ends of the range. For DateTime search this is useless, but for date-only searches, this limits the search
-      // to a single day.
-	    OffsetDateTime endTime = parseDate(endingDate, startTime, usesTime); // throws ResponseException
-
-      // If we only specified a Date for both figures...
-      if (!timeUsed && !usesTime.getValue()) {
-      	endTime = endTime.plus(ONE_DAY);
-      }
 
       final Collection<CustomerOrder> results;
       if (complete == null) {
-        results = customerOrderRepository.findByOrderTimeAfterAndOrderTimeBeforeOrderByOrderTime(startTime, endTime);
+        results = customerOrderRepository.findByOrderTimeAfterAndOrderTimeBeforeOrderByOrderTime(startingDate, endingDate);
       } else {
-        results = customerOrderRepository.findByOrderTimeAfterAndOrderTimeBeforeAndCompleteOrderByOrderTime(startTime, endTime, complete);
+        results = customerOrderRepository.findByOrderTimeAfterAndOrderTimeBeforeAndCompleteOrderByOrderTime(startingDate, endingDate, complete);
       }
       return convertCustomerOrderList(results);
     });
@@ -220,50 +198,14 @@ public class OrderApiController implements OrderApi {
     return dtoList;
   }
 
-  /**
-   * Parse a date. First tries DATE_TIME_FORMAT; then, if that fails, tries DATE_FORMAT.
-   *
-   * @param dateText The date as text
-   * @param defaultDate The default Date to use if dateText is null or empty. If null, uses the value of getCurrentDate()
-   * @param usesTime    Holds true if the date includes the time, false otherwise.
-   * @return The Date specified in the DateText.
-   * @throws BadRequestException BAD_REQUEST if it's unable to parse the dateText.
-   */
-  private OffsetDateTime parseDate(String dateText, OffsetDateTime defaultDate, ReturnableReference<Boolean> usesTime) throws BadRequestException {
-    // I don't know if a missing date is sent as null or as an empty String, but this gets both cases.
-    if ((dateText == null) || dateText.isEmpty()) {
-      usesTime.setValue(Boolean.FALSE);
-      if (defaultDate == null) {
-        defaultDate = getCurrentDate();
-      }
-      return defaultDate;
-    }
-//    try {
-//      usesTime.setValue(Boolean.TRUE);
-//      return OffsetDateTime.of(OffsetDate.from(DATE_FMT.parse(dateText, LocalDate::from)), );
-//    } catch (DateTimeException ignored) {
-//	    log.debug("LocalDate Failed to parse {}: {}", dateText, ignored.getMessage(), ignored); // NON-NLS
-//    }
-    try {
-      usesTime.setValue(Boolean.FALSE);
-      return OffsetDateTime.from(DATE_TIME_LONG_FMT.parse(dateText, OffsetDateTime::from));
-    } catch (DateTimeException ex) {
-      throw new BadRequestException(String.format("Unable to parse: %s", dateText), ex);
-    }
-  }
-
-  private static OffsetDateTime getCurrentDate() {
-  	LocalDate date = LocalDate.now();
-    return OffsetDateTime.from(date);
-  }
 
   @Override
   @RequestMapping(value = "/order/{id}",
       produces = {"application/json"},
       method = RequestMethod.GET)
-  public ResponseEntity<CustomerOrderDto> searchForOrder(@PathVariable("id") final String id) {
+  public ResponseEntity<CustomerOrderDto> searchForOrder(@PathVariable("id") final Integer id) {
     return serveOK(() -> {
-      CustomerOrder order = customerOrderRepository.findOne(confirmAndDecodeInteger(id));
+      CustomerOrder order = customerOrderRepository.findOne(id);
 //      SimpleDateFormat format = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
       final OffsetDateTime orderTime = order.getOrderTime();
       if (orderTime != null) {

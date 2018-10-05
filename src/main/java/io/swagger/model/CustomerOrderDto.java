@@ -13,7 +13,7 @@ import org.springframework.validation.annotation.Validated;
  * CustomerOrderDto
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-21T09:16:24.928Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-10-05T10:50:14.597Z")
 
 public class CustomerOrderDto   {
   @JsonProperty("menuItem")
@@ -29,7 +29,6 @@ public class CustomerOrderDto   {
   @JsonProperty("id")
   private Integer id = null;
 
-//  Todo: Should these be OffsetDateTime or Instant?
   @JsonProperty("orderTime")
   private OffsetDateTime orderTime = null;
 
@@ -64,7 +63,7 @@ public class CustomerOrderDto   {
 
   public CustomerOrderDto addOptionsItem(MenuItemOptionDto optionsItem) {
     if (this.options == null) {
-      this.options = new ArrayList<MenuItemOptionDto>();
+      this.options = new ArrayList<>();
     }
     this.options.add(optionsItem);
     return this;

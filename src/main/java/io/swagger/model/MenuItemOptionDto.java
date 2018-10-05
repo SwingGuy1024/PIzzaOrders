@@ -1,27 +1,26 @@
 package io.swagger.model;
 
+import java.math.BigDecimal;
 import java.util.Objects;
+import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.validation.annotation.Validated;
-import javax.validation.Valid;
-import javax.validation.constraints.*;
 
 /**
  * Option for a MenuItem
  */
 @ApiModel(description = "Option for a MenuItem")
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-22T09:07:09.429Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-10-05T10:50:14.597Z")
 
 public class MenuItemOptionDto   {
   @JsonProperty("name")
   private String name = null;
 
   @JsonProperty("deltaPrice")
-  private String deltaPrice = null;
+  private BigDecimal deltaPrice = null;
 
   @JsonProperty("id")
   private Integer id = null;
@@ -46,7 +45,7 @@ public class MenuItemOptionDto   {
     this.name = name;
   }
 
-  public MenuItemOptionDto deltaPrice(String deltaPrice) {
+  public MenuItemOptionDto deltaPrice(BigDecimal deltaPrice) {
     this.deltaPrice = deltaPrice;
     return this;
   }
@@ -57,12 +56,12 @@ public class MenuItemOptionDto   {
   **/
   @ApiModelProperty(value = "Floating point price. Strings are easier to work with.")
 
-
-  public String getDeltaPrice() {
+  @Valid
+  public BigDecimal getDeltaPrice() {
     return deltaPrice;
   }
 
-  public void setDeltaPrice(String deltaPrice) {
+  public void setDeltaPrice(BigDecimal deltaPrice) {
     this.deltaPrice = deltaPrice;
   }
 
