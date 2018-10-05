@@ -41,7 +41,7 @@ You do not need to launch a database server to run this application. I use an em
 
 ## Service Implementations
 
-To ensure consistency in how the services are written, and to reduce the amount of boilerplate code, all the services use a variant of the `ResponseUtility.serve()` method. This allows the service to focus solely on the task of generating the service data, and not worry about creating the ResponseEntity or generating an error response. In case of an error, the service need only throw a ResponseException, which includes an HttpStatus value. By convention, this exception is thrown by methods beginning with the word "confirm." For example, if a service requests an Entity with a specific ID, and the item may return null, the service should call `PojoUtility.confirmNotNull(entity, id);` If the value is `null`, the `confirmNotNull()` method will throw a ResponseException with a NOT_FOUND status, and include the id in the error message.
+To ensure consistency in how the services are written, and to reduce the amount of boilerplate code, all the services use a variant of the `ResponseUtility.serve()` method. This allows the service to focus solely on the task of generating the service data, and not worry about creating the ResponseEntity or generating an error response. In case of an error, the service need only throw a ResponseException, which includes an HttpStatus value. By convention, this exception is thrown by methods beginning with the word "confirm." For example, if a service requests an Entity with a specific ID, and the item may return null, the service should call `PojoUtility.confirmFound(entity, id);` If the value is `null`, the `confirmFound()` method will throw a ResponseException with a NOT_FOUND status, and include the id in the error message.
 
 So a service method that needs to return an instance of `MenuItemDto` would look something like this:
 
@@ -52,25 +52,26 @@ So a service method that needs to return an instance of `MenuItemDto` would look
    method = RequestMethod.GET)
 2  public ResponseEntity<MenuItemDto> getMenuItem(@PathVariable("id") final Integer id) {
 3    return serve(HttpStatus.OK, () -> {
-4      MenuItem menuItem = menuItemRepository.findOne(id); // Get from the database
-5      confirmNotNull(menuItem, id);           // throws ResponseException
-6      return objectMapper.convertValue(menuItem, MenuItemDto.class);
-7    });
-8  }
+4      confirmNeverNull(id);
+5      MenuItem menuItem = menuItemRepository.findOne(id); // Get from the database
+6      confirmFound(menuItem, id);           // throws ResponseException
+7      return objectMapper.convertValue(menuItem, MenuItemDto.class);
+8    });
+9  }
 ```
 
 
 So, on line 3, we specify an OK status if the method returns successfully. We also begin the lambda expression that does the work of this service.
 
-On line 5, we test for null, using the `confirmNotNull()` method. If `menuItem` is null, it will throw `ResponseException` with an `HttpStatus` of `NOT_FOUND`. We don't need to catch it, because the `serve()` method, on line 3, does that.
+On line 6, we test for null, using the `confirmFound()` method. If `menuItem` is null, it will throw `ResponseException` with an `HttpStatus` of `NOT_FOUND`. We don't need to catch it, because it's annotated with `@ResponseStatus(HttpStatus.NOT_FOUND)`, so the server will use that status code in its response. But the `serve()` method, on line 3, catches it for logging purposes, then rethrows it.
 
 The call to the `serve()` method takes care four boilerplate details:
 1. It adds the return value (an instance of MenuItemDto) to the `ResponseEntity` on successful completion.
 1. It sets the specified HttpStatus, which in this example is `HttpStatus.OK`.
-1. It generates the proper error response, with an error status code of NOT_FOUND, if the `confirmNotNull()` method throws a `ResponseException`.
+1. It generates the proper error response, with an error status code of NOT_FOUND, if the `confirmFound()` method throws a `ResponseException`. The NotFoundException thrown by the `confirmFound()` method extends ResponseException, as do all the others.
 1. It logs the error message and exception.
 
-The lambda expression creates an object of type ServiceMethod. This is a simple funcitonal interface:
+The lambda expression creates an object of type ServiceMethod. This is a simple functional interface:
 
 ```java
 @FunctionalInterface
@@ -88,13 +89,13 @@ The only boilerplate code in the example is the `@RequestMapping` annotation and
 ### Sample `confirmXxx()` methods. 
 All of these may throw a `ResponseException`. I've adopted the convention that all methods that may throw `ResponseException` start with the word *confirm.*
 
-* `confirmNotNull(T entity, Object id) throws ResponseException` Confirms the returned entity with specified id is not null. (The `id` parameter is used to generate a more useful error message.)
+* `confirmFound(T entity, Object id) throws ResponseException` Confirms the returned entity with specified id is not null. (The `id` parameter is used to generate a more useful error message.)
 * `confirmNeverNull(T object) throws ResponseException` Used for values that are not entities.
 * `confirmNull(Object object) throws ResponseException` This is useful to ensure a resource doesn't already exist.
 * `confirmEqual(T expected, T actual) throws ResponseException`
 * `confirmAndDecodeInteger(final String id) throws ResponseException` This Parses the String into an Integer. A better name might be just `decodeInteger()`, but it starts with `confirm` to keep with the convention that all methods that throw a `ResponseException` start with `confirm`.
 
-People have asked why I didn't use the word *validate,* since it's pretty standard. I decided not to use it to be clear that these methods are not a part of any particular validation framework.
+People have asked why I didn't use the word *validate,* since it's pretty standard. I decided not to use it to be clear that these methods are not a part of any third-party validation framework.
 
 
 ## Data Model 
@@ -124,5 +125,5 @@ A Food order is an actual order. It has a final price, a boolean to record when 
 ## Testing
 The testing application properties specify an in-memory database, so changes get wiped out from test to test. This greatly facilitates testing.
 
-The Controller classes have public method which are called by the server, and package-level methods that are only for testing. All of these package methods are named `xxxXxxxTestOnly` to discourage their use even if somebody puts a class to the right package. 
+The Controller classes have public method which are called by the server, and package-level methods that are only for testing. All of these package methods are named `xxxXxxxTestOnly` to discourage their use even if somebody puts a class in the same package. 
 
