@@ -93,10 +93,10 @@ public class MenuItemApiControllerTest {
   }
 
   private static MenuItemOptionDto makeMenuItemOptionDto(String name, String price) {
-    MenuItemOptionDto oliveOption = new MenuItemOptionDto();
-    oliveOption.setName(name);
-    oliveOption.setDeltaPrice(new BigDecimal(price));
-    return oliveOption;
+    MenuItemOptionDto option = new MenuItemOptionDto();
+    option.setName(name);
+    option.setDeltaPrice(new BigDecimal(price));
+    return option;
   }
 
   // Tests of addMenuItemOption()
@@ -104,7 +104,9 @@ public class MenuItemApiControllerTest {
   @Test
   public void testAddOptionBadInput() {
     isNotFound(5, makeMenuItemOptionDto("olives","1000.00"));
+    isNotFound(6, makeMenuItemOptionDto("pepperoni", "100.00"));
     isBadRequest(5, makeMenuItemOptionDto("","0.40"));
+    isBadRequest(6, makeMenuItemOptionDto("", "0.50"));
   }
 
   private void isBadRequest(int id, MenuItemOptionDto optionDto) {
