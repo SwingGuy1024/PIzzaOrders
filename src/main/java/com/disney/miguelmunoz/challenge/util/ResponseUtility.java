@@ -1,6 +1,5 @@
 package com.disney.miguelmunoz.challenge.util;
 
-import com.disney.miguelmunoz.challenge.exception.InternalServerErrorException;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import io.swagger.model.CreatedResponse;
 import org.slf4j.Logger;
