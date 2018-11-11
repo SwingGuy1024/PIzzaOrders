@@ -19,6 +19,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 class InternalServerErrorException extends ResponseException {
+	/**
+	 * Wrap a RuntimeException or other Throwable in an InternalServerErrorException. This should only be used for
+	 * unexpected exceptions due to bugs.
+	 * @param cause The initial Exception
+	 * @see InternalServerErrorException 
+	 */
 	InternalServerErrorException(Throwable cause) {
 		super(cause.getMessage(), cause);
 	}
