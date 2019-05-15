@@ -75,6 +75,8 @@ The call to the `serve()` method takes care four boilerplate details:
 1. It generates the proper error response, with an error status code of NOT_FOUND, if the `confirmFound()` method throws a `ResponseException`. The NotFoundException thrown by the `confirmFound()` method extends ResponseException, as do all the others.
 1. It logs the error message and exception.
 
+Also, by using ResponseExceptions to send failure information back to the `serve()` method, it discourages the use of common Exception anti-patterns, like catch/log/return-null. Instead, developrs are encouraged to wrap a checked exception in a ResponseException and rethrow it, and to ignore all RuntimeExceptions, letting them propogate up to the `serve()` method, which can then generate an INTERNAL SERVER ERROR response.
+
 The lambda expression creates an object of type ServiceMethod. This is a simple functional interface:
 
 ```java
