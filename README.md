@@ -69,11 +69,12 @@ So, on line 3, we specify an OK status if the method returns successfully. We al
 
 On line 6, we test for null, using the `confirmFound()` method. If `menuItem` is null, it will throw `ResponseException` with an `HttpStatus` of `NOT_FOUND`. We don't need to catch it, because it's annotated with `@ResponseStatus(HttpStatus.NOT_FOUND)`, so the server will use that status code in its response. But the `serve()` method, on line 3, catches it for logging purposes, then rethrows it.
 
-The call to the `serve()` method takes care four boilerplate details:
+The call to the `serve()` method takes care five boilerplate details:
 1. It adds the return value (an instance of MenuItemDto) to the `ResponseEntity` on successful completion.
 1. It sets the specified HttpStatus, which in this example is `HttpStatus.OK`.
-1. It generates the proper error response, with an error status code of NOT_FOUND, if the `confirmFound()` method throws a `ResponseException`. The NotFoundException thrown by the `confirmFound()` method extends ResponseException, as do all the others.
+1. It generates the proper error response, with an error status code taken from the `ResponseException` thrown by the lambda expression. In this case, this is a `NotFoundException` thrown by the`confirmFound()` method. The `NotFoundException` method extends `ResponseException`, as do all the others.
 1. It logs the error message and exception.
+1. It catches any RuntimeExceptions and returns a respone of Internal Server Error.
 
 Also, by using ResponseExceptions to send failure information back to the `serve()` method, it discourages the use of common Exception anti-patterns, like catch/log/return-null. Instead, developrs are encouraged to wrap a checked exception in a ResponseException and rethrow it, and to ignore all RuntimeExceptions, letting them propogate up to the `serve()` method, which can then generate an INTERNAL SERVER ERROR response.
 
