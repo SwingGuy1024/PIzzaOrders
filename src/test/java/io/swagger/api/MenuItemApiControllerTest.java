@@ -12,8 +12,8 @@ import java.util.Set;
 import com.disney.miguelmunoz.challenge.Application;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
-import com.disney.miguelmunoz.challenge.exception.BadRequestException;
-import com.disney.miguelmunoz.challenge.exception.NotFoundException;
+import com.disney.miguelmunoz.challenge.exception.BadRequest400Exception;
+import com.disney.miguelmunoz.challenge.exception.NotFound404Exception;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.MenuItemDto;
@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
  *
  * @author Miguel Mu\u00f1oz
  */
-@SuppressWarnings({"CallToNumericToString", "MagicCharacter", "MagicNumber"})
+@SuppressWarnings("MagicNumber")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @Component
@@ -61,7 +61,7 @@ public class MenuItemApiControllerTest {
 	  try {
 		  ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
 		  fail(responseEntity.toString());
-    } catch (BadRequestException ignored) { }
+    } catch (BadRequest400Exception ignored) { }
   }
   
   @Test
@@ -113,14 +113,14 @@ public class MenuItemApiControllerTest {
     try {
       final ResponseEntity<CreatedResponse> stringResponseEntity = menuItemApiController.addMenuItemOption(id, optionDto);
       fail(stringResponseEntity.toString());
-    } catch (BadRequestException ignored) { }
+    } catch (BadRequest400Exception ignored) { }
   }
 
   private void isNotFound(int id, MenuItemOptionDto optionDto) {
     try {
       final ResponseEntity<CreatedResponse> stringResponseEntity = menuItemApiController.addMenuItemOption(id, optionDto);
       fail(stringResponseEntity.toString());
-    } catch (NotFoundException ignored) { }
+    } catch (NotFound404Exception ignored) { }
   }
 
   // Test of deleteOption()
@@ -144,7 +144,7 @@ public class MenuItemApiControllerTest {
 	  try {
 		  ResponseEntity<Void> badResponseTwo = menuItemApiController.deleteOption(100000);
 		  fail(badResponseTwo.toString());
-    } catch (NotFoundException ignored) { }
+    } catch (NotFound404Exception ignored) { }
 
     MenuItemOption removedOption = item.getAllowedOptions().iterator().next();
     String removedName = removedOption.getName();

@@ -7,8 +7,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
-import com.disney.miguelmunoz.challenge.exception.BadRequestException;
-import com.disney.miguelmunoz.challenge.exception.NotFoundException;
+import com.disney.miguelmunoz.challenge.exception.BadRequest400Exception;
+import com.disney.miguelmunoz.challenge.exception.NotFound404Exception;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +47,6 @@ public enum PojoUtility {
   @SuppressWarnings("unchecked") // always empty, so there are no values to cast incorrectly.
   public static <T> Iterable<T> skipNull(Iterable<T> iterable) {
     if (iterable == null) {
-      //noinspection AssignmentOrReturnOfFieldWithMutableType
       return (Iterable<T>) emptyIterable;
     }
     return iterable;
@@ -65,7 +64,7 @@ public enum PojoUtility {
       @SuppressWarnings("argument.type.incompatible") final Integer longValue = Integer.valueOf(id);
       return longValue; // throws NumberFormatException on null
     } catch (NumberFormatException e) {
-      throw new BadRequestException(id, e);
+      throw new BadRequest400Exception(id, e);
     }
   }
 
@@ -81,7 +80,7 @@ public enum PojoUtility {
       @SuppressWarnings("argument.type.incompatible") final Long longValue = Long.valueOf(id);
       return longValue; // throws NumberFormatException on null
     } catch (NumberFormatException e) {
-      throw new BadRequestException(id, e);
+      throw new BadRequest400Exception(id, e);
     }
   }
 
@@ -93,9 +92,10 @@ public enum PojoUtility {
    * @return entity, if it's not null
    * @throws ResponseException NOT_FOUND (404) if entity is null.
    */
+  @SuppressWarnings("ConstantConditions")
   public static <T> T confirmFound(T entity, Object id) throws ResponseException {
     if (entity == null) {
-      throw new NotFoundException(String.format("Missing object at id %s", id));
+      throw new NotFound404Exception(String.format("Missing object at id %s", id));
     }
     return entity;
   }
@@ -110,7 +110,7 @@ public enum PojoUtility {
    */
   public static <T> T confirmNeverNull(T object) throws ResponseException {
     if (object == null) {
-      throw new BadRequestException("Missing object");
+      throw new BadRequest400Exception("Missing object");
     }
     return object;
   }
@@ -124,7 +124,7 @@ public enum PojoUtility {
   public static void confirmNull(Object object) throws ResponseException {
     if (object != null) {
 	    //noinspection StringConcatenation
-	    throw new BadRequestException("non-null value: " + object);
+	    throw new BadRequest400Exception("non-null value: " + object);
     }
   }
 
@@ -138,7 +138,7 @@ public enum PojoUtility {
    */
   public static <T> void confirmEqual(T expected, T actual) throws ResponseException {
     if (!Objects.equals(actual, expected)) {
-      throw new BadRequestException(String.format("Expected %s  Found %s", expected, actual));
+      throw new BadRequest400Exception(String.format("Expected %s  Found %s", expected, actual));
     }
   }
 
@@ -153,14 +153,24 @@ public enum PojoUtility {
    */
   public static <T> void confirmEqual(String message, T expected, T actual) throws ResponseException {
     if (!Objects.equals(actual, expected)) {
-      throw new BadRequestException(message);
+      throw new BadRequest400Exception(message);
     }
   }
 
-  public static <T> List<LinkedHashMap<String, ?>> convertEntities(String json) throws IOException {
-    return mapper.readValue(json, new TypeReference<List<T>>() { });
-  }
-  
+//  // This doesn't get used, and the missing LinkedHashMap from the return statement suggests it can't work this way,
+//  // so the whole thing has been removed. We probably don't need it, but I'm not entirely sure, so I'm keeping it 
+//  // around until I have a clearer idea if we will need it.
+//  public static <T> List<LinkedHashMap<String, ?>> convertEntities(String json) throws IOException {
+//    return mapper.readValue(json, new TypeReference<List<T>>() { });
+//  }
+
+  /**
+   * Convert a Collection of DTOs into a collection of the corresponding entities.
+   * @param inputList The list of DTOs
+   * @param <I> The Input DTO type
+   * @param <O> The Output entity type
+   * @return A list of entities of type O
+   */
   public static <I, O> List<O> convertList(Collection<I> inputList) {
     return mapper.convertValue(inputList, new TypeReference<List<O>>() { });
   }
@@ -195,7 +205,7 @@ public enum PojoUtility {
    */
   public static String confirmNotEmpty(String s) throws ResponseException {
     if ((s == null) || s.isEmpty()) {
-      throw new BadRequestException(String.format("Null or empty value: \"%s\"", s));
+      throw new BadRequest400Exception(String.format("Null or empty value: \"%s\"", s));
     }
     return s;
   }

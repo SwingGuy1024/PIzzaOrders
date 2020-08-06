@@ -5,7 +5,7 @@ import javax.validation.Valid;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
-import com.disney.miguelmunoz.challenge.exception.BadRequestException;
+import com.disney.miguelmunoz.challenge.exception.BadRequest400Exception;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +28,7 @@ import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
 // I removed the Generated annotation, because it turns inspections off for the whole class.
 //@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
 
-@SuppressWarnings({"HardcodedFileSeparator", "HardCodedStringLiteral", "CallToNumericToString", "SimplifiableAnnotation"})
+@SuppressWarnings({"HardcodedFileSeparator", "SimplifiableAnnotation"})
 @Controller
 public class MenuItemApiController implements MenuItemApi {
 
@@ -80,7 +80,7 @@ public class MenuItemApiController implements MenuItemApi {
       for (MenuItemOptionDto option : skipNull(menuItemDto.getAllowedOptions())) {
         final String optionName = option.getName();
         if ((optionName == null) || optionName.isEmpty()) {
-          throw new BadRequestException("Missing Food Option name for item");
+          throw new BadRequest400Exception("Missing Food Option name for item");
         }
       }
       MenuItem menuItem = convertMenuItem(menuItemDto);

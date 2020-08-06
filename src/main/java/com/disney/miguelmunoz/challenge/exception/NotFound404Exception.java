@@ -6,17 +6,18 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 9/30/18
- * <p>Time: 6:08 PM
+ * <p>Time: 5:53 PM
  *
  * @author Miguel Mu\u00f1oz
  */
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-public class BadRequestException extends ResponseException {
-	public BadRequestException(String message) {
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class NotFound404Exception extends ResponseException {
+
+	public NotFound404Exception(final String message) {
 		super(message);
 	}
-	
-	public BadRequestException(String message, Throwable cause) {
+
+	public NotFound404Exception(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 }

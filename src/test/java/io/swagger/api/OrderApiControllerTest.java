@@ -11,8 +11,8 @@ import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.disney.miguelmunoz.challenge.entities.PojoUtility;
-import com.disney.miguelmunoz.challenge.exception.BadRequestException;
-import com.disney.miguelmunoz.challenge.exception.NotFoundException;
+import com.disney.miguelmunoz.challenge.exception.BadRequest400Exception;
+import com.disney.miguelmunoz.challenge.exception.NotFound404Exception;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
@@ -75,25 +75,25 @@ public class OrderApiControllerTest {
     try {
       responseEntity = orderApiController.addOrder(customerOrderDto);
       fail(responseEntity.toString());
-    } catch (BadRequestException ignored) { }
+    } catch (BadRequest400Exception ignored) { }
 
     customerOrderDto.setId(null);
     try {
       responseEntity = orderApiController.addOrder(customerOrderDto);
       fail(responseEntity.toString());
-    } catch (BadRequestException ignored) { }
+    } catch (BadRequest400Exception ignored) { }
     
     customerOrderDto.setCompleteTime(null);
     try {
       responseEntity = orderApiController.addOrder(customerOrderDto);
       fail(responseEntity.toString());
-    } catch (BadRequestException ignored) { }
+    } catch (BadRequest400Exception ignored) { }
 
     customerOrderDto.setMenuItem(pizzaMenuItemDto);
     try {
       responseEntity = orderApiController.addOrder(customerOrderDto);
       fail(responseEntity.toString());
-    } catch (BadRequestException ignored) { }
+    } catch (BadRequest400Exception ignored) { }
 
     customerOrderDto.setComplete(Boolean.FALSE);
     responseEntity = orderApiController.addOrder(customerOrderDto);
@@ -112,7 +112,7 @@ public class OrderApiControllerTest {
     try {
       createResponse = orderApiController.completeOrder(10000);
       fail(createResponse.toString());
-    } catch (NotFoundException ignored) { }
+    } catch (NotFound404Exception ignored) { }
 
     log.info("Completing order with id = {}", id);
     createResponse = orderApiController.completeOrder(id);
@@ -135,7 +135,7 @@ public class OrderApiControllerTest {
     try {
       createResponse = orderApiController.completeOrder(id);
       fail(createResponse.toString());
-    } catch (BadRequestException e) {
+    } catch (BadRequest400Exception e) {
       assertThat(e.getMessage(), containsString("Already Complete"));
     }
 
@@ -144,7 +144,7 @@ public class OrderApiControllerTest {
     try {
       ResponseEntity<Void> badDeleteResponse = orderApiController.deleteOrder(null);
       fail(badDeleteResponse.toString());
-    } catch (BadRequestException ignored) { }
+    } catch (BadRequest400Exception ignored) { }
     
     ResponseEntity<Void> deleteResponse = orderApiController.deleteOrder(id);
     assertEquals(HttpStatus.ACCEPTED, deleteResponse.getStatusCode());
@@ -208,7 +208,7 @@ public class OrderApiControllerTest {
     try {
       pizzaResponse = orderApiController.addMenuItemOptionToCustomerOrder(orderM5cId, 10000);
       fail(pizzaResponse.toString());
-    } catch (NotFoundException e) {
+    } catch (NotFound404Exception e) {
       assertThat(e.getMessage(), containsString("Missing object at id 10000"));
     } catch(Throwable t) {
       log.error("Strange exception of {}: {}", t.getClass().getName(), t.getMessage(), t);

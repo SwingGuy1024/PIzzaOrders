@@ -36,7 +36,7 @@ import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
 
 //@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
 
-@SuppressWarnings({"HardcodedFileSeparator", "SimplifiableAnnotation", "CallToNumericToString"})
+@SuppressWarnings({"HardcodedFileSeparator", "SimplifiableAnnotation"})
 @Controller
 public class OrderApiController implements OrderApi {
 
@@ -134,6 +134,7 @@ public class OrderApiController implements OrderApi {
     return serve(HttpStatus.ACCEPTED, () -> {
       CustomerOrder order = customerOrderRepository.findOne(id);
       confirmFound(order, id);
+      //noinspection HardCodedStringLiteral
       confirmEqual("Already Complete", Boolean.FALSE, order.getComplete()); // Test searches for this String.
       order.setComplete(Boolean.TRUE);
       final OffsetDateTime completeTime = OffsetDateTime.now();
