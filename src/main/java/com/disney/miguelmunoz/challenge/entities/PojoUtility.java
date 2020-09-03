@@ -1,12 +1,15 @@
 package com.disney.miguelmunoz.challenge.entities;
 
-import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import javax.persistence.Entity;
 import com.disney.miguelmunoz.challenge.exception.BadRequest400Exception;
 import com.disney.miguelmunoz.challenge.exception.NotFound404Exception;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
@@ -57,12 +60,11 @@ public enum PojoUtility {
    *
    * @param id The id as a String
    * @return the id as a Integer value
-   * @throws ResponseException BAD_REQUEST (400) if id is null or is not readable as a long value.
+   * @throws ResponseException BAD_REQUEST (400) if id is null or is not readable as an int value.
    */
   public static Integer confirmAndDecodeInteger(final String id) throws ResponseException {
     try {
-      @SuppressWarnings("argument.type.incompatible") final Integer longValue = Integer.valueOf(id);
-      return longValue; // throws NumberFormatException on null
+      return Integer.valueOf(id); // throws NumberFormatException on null
     } catch (NumberFormatException e) {
       throw new BadRequest400Exception(id, e);
     }
@@ -77,15 +79,15 @@ public enum PojoUtility {
    */
   public static Long confirmAndDecodeLong(final String id) throws ResponseException {
     try {
-      @SuppressWarnings("argument.type.incompatible") final Long longValue = Long.valueOf(id);
-      return longValue; // throws NumberFormatException on null
+      return Long.valueOf(id); // throws NumberFormatException on null
     } catch (NumberFormatException e) {
       throw new BadRequest400Exception(id, e);
     }
   }
 
   /**
-   * Use when an entity was not found in the database at the specified id. 
+   * Confirms the requested entity was found, throwing a NotFound404Exception if not.
+   * Use when an entity was requested from the database at the specified id. 
    * @param entity The entity to test.
    * @param id The id, used to generate a useful error message
    * @param <T> The type of the entity
@@ -93,15 +95,33 @@ public enum PojoUtility {
    * @throws ResponseException NOT_FOUND (404) if entity is null.
    */
   @SuppressWarnings("ConstantConditions")
-  public static <T> T confirmFound(T entity, Object id) throws ResponseException {
+  public static <T> T confirmEntityFound(T entity, Object id) throws ResponseException {
     if (entity == null) {
       throw new NotFound404Exception(String.format("Missing object at id %s", id));
     }
+    assert isEntityAssertion(entity) : "This method is only for entities. Use confirmNeverNull()";
     return entity;
   }
 
   /**
-   * Use when a non-entity object should not be null. Returns a BadRequest (400). If testing for an entity, you 
+   * Confirms the requested entity was found, throwing a NotFound404Exception if not.
+   * Use when an entity was added to another entity, and wasn't explicitly retrieved from an id.
+   *
+   * @param entity The entity to test.
+   * @param <T>    The type of the entity
+   * @return entity, if it's not null
+   * @throws ResponseException NOT_FOUND (404) if entity is null.
+   */
+  public static <T> T confirmEntityFound(T entity) throws ResponseException {
+    if (entity == null) {
+      throw new NotFound404Exception("Missing object");
+    }
+    assert isEntityAssertion(entity) : "This method is only for entities. Use confirmNeverNull()";
+    return entity;
+  }
+
+  /**
+   * Use when a non-entity object should not be null. Throws a BadRequest400Exception if null. If testing for an entity, you 
    * should use confirmFound(T object, Object id), which return a NOT_FOUND (404).
    * @param object The non-entity object to test.
    * @param <T> The object type
@@ -112,7 +132,18 @@ public enum PojoUtility {
     if (object == null) {
       throw new BadRequest400Exception("Missing object");
     }
+    assert !isEntityAssertion(object) : String.format("This method is not for entity objects. Use confirmFound(): %s", object.getClass());
     return object;
+  }
+  
+  private static boolean isEntityAssertion(Object object) {
+    Set<Annotation> annotationSet = new HashSet<>();
+    return Arrays.stream(object.getClass().getDeclaredAnnotations())
+        .anyMatch(a -> a.annotationType() == Entity.class);
+  }
+  
+  public static <T> Set<T> asSet(T[] tArray) {
+    return new HashSet<>(Arrays.asList(tArray));
   }
 
   /**

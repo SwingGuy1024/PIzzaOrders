@@ -97,11 +97,11 @@ public class MenuItemDto   {
     this.allowedOptions = allowedOptions;
   }
 
-  public MenuItemDto id(Integer id) {
-    this.id = id;
-    return this;
-  }
-
+//  public MenuItemDto id(Integer id) {
+//    this.id = id;
+//    return this;
+//  }
+//
    /**
    * Get id
    * @return id

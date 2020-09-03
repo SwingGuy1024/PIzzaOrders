@@ -76,16 +76,16 @@ public class OrderApiController implements OrderApi {
       @PathVariable("order_id") final Integer customerOrderId,
       @PathVariable("menu_option_id") final Integer menuOptionId
   ) {
-    return serve(HttpStatus.ACCEPTED, () -> {
+    return serveById(HttpStatus.ACCEPTED, () -> {
       CustomerOrder order = customerOrderRepository.findOne(customerOrderId); // throws ResponseException
-      confirmFound(order, customerOrderId);
+      confirmEntityFound(order, customerOrderId);
       MenuItem item = order.getMenuItem();
       confirmItemHasOptionId(item, menuOptionId); // throws ResponseException
       MenuItemOption option = menuItemOptionRepository.findOne(menuOptionId); // throws ResponseException
       order.getOptions().add(option);
       CustomerOrder updatedOrder = customerOrderRepository.save(order);
 
-      return buildCreatedResponseWithId(updatedOrder.getId());
+      return updatedOrder.getId();
     });
   }
 
@@ -96,7 +96,7 @@ public class OrderApiController implements OrderApi {
       }
     }
     //noinspection ConstantConditions
-    confirmFound(null, menuOptionId); // Error String is used in a unit test.
+    confirmEntityFound(null, menuOptionId); // Error String is used in a unit test.
   }
 
   @Override
@@ -105,12 +105,12 @@ public class OrderApiController implements OrderApi {
       consumes = {"application/json"},
       method = RequestMethod.PUT)
   public ResponseEntity<CreatedResponse> addOrder(CustomerOrderDto order) {
-    return serveCreated(() -> {
+    return serveCreatedById(() -> {
       CustomerOrder orderEntity = makeCustomerOrder(order);
       confirmNull(orderEntity.getId());
       confirmNull(orderEntity.getCompleteTime());
       final MenuItem menuItem = orderEntity.getMenuItem();
-      confirmNeverNull(menuItem);
+      confirmEntityFound(menuItem);
       confirmEqual(Boolean.FALSE, orderEntity.getComplete());
 
       orderEntity.setOrderTime(OffsetDateTime.now());
@@ -122,7 +122,7 @@ public class OrderApiController implements OrderApi {
       MenuItem savedMenuItem = menuItemRepository.save(menuItem);
       orderEntity.setMenuItem(savedMenuItem);
       CustomerOrder savedOrder = customerOrderRepository.save(orderEntity);
-      return buildCreatedResponseWithId(savedOrder.getId());
+      return savedOrder.getId();
     });
   }
 
@@ -131,9 +131,9 @@ public class OrderApiController implements OrderApi {
       produces = {"application/json"},
       method = RequestMethod.POST)
   public ResponseEntity<CreatedResponse> completeOrder(@PathVariable("id") final Integer id) {
-    return serve(HttpStatus.ACCEPTED, () -> {
+    return serveById(HttpStatus.ACCEPTED, () -> {
       CustomerOrder order = customerOrderRepository.findOne(id);
-      confirmFound(order, id);
+      confirmEntityFound(order, id);
       //noinspection HardCodedStringLiteral
       confirmEqual("Already Complete", Boolean.FALSE, order.getComplete()); // Test searches for this String.
       order.setComplete(Boolean.TRUE);
@@ -143,7 +143,7 @@ public class OrderApiController implements OrderApi {
       OffsetDateTime cTime = order.getCompleteTime();
       log.debug("Pojo Complete Time: {} = {}", cTime, DATE_TIME_LONG_FMT.format(cTime));
       customerOrderRepository.save(order);
-      return new CreatedResponse();
+      return order.getId();
     });
   }
 

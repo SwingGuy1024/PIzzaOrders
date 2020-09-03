@@ -70,8 +70,13 @@ public class MenuItem {
     if (!(o instanceof MenuItem)) { return false; } // implicitly checks for null
 
     final MenuItem menuItem = (MenuItem) o;
+    
+    if (getId() == null) {
+      //noinspection ProhibitedExceptionThrown
+      throw new NullPointerException("Not yet persisted Entity: Never call equals() or add to a Set");
+    }
 
-    return (getId() != null) ? getId().equals(menuItem.getId()) : (menuItem.getId() == null);
+    return getId().equals(menuItem.getId());
   }
 
   @Override

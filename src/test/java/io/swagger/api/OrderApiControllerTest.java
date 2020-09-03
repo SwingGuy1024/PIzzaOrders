@@ -87,7 +87,7 @@ public class OrderApiControllerTest {
     try {
       responseEntity = orderApiController.addOrder(customerOrderDto);
       fail(responseEntity.toString());
-    } catch (BadRequest400Exception ignored) { }
+    } catch (NotFound404Exception ignored) { }
 
     customerOrderDto.setMenuItem(pizzaMenuItemDto);
     try {
