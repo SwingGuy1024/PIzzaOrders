@@ -80,7 +80,7 @@ Also, by using ResponseExceptions to send failure information back to the `serve
 
 The lambda expression creates an object of type ServiceMethod. This is a simple functional interface:
 
-```java
+```
 @FunctionalInterface
 public interface ServiceMethod<T> {
   T doService() throws ResponseException;
@@ -136,3 +136,16 @@ The testing application properties specify an in-memory database, so changes get
 
 The Controller classes have public method which are called by the server, and package-level methods that are only for testing. All of these package methods are named `xxxXxxxTestOnly` to discourage their use even if somebody puts a class in the same package. 
 
+## Code Generation
+Generated using Swagger 2.0 Swing Server, with the following options:
+
+interface only
+not null jackson annotation
+big decimal as string
+ensure unique params
+allow unicode identifiers
+
+date library: Java 8 using Instant
+developer name: Miguel Muñoz
+title: Pizza Orders
+library: Spring Boot Server Application

@@ -18,8 +18,6 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
-
 /**
  * <p>Created by IntelliJ IDEA.
  * <p>Date: 2/19/18

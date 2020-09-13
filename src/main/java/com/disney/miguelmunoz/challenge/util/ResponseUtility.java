@@ -126,22 +126,6 @@ public enum ResponseUtility {
    */
   public static <T> ResponseEntity<T> serve(HttpStatus successStatus, ServiceMethod<T> method) throws ResponseException {
     assert method != null;
-    try {
-      // All of the work of the service goes into the method.doService() implementation.
-      return new ResponseEntity<>(method.doService(), successStatus);
-    } catch (ResponseException e) {
-      log.debug(e.getLocalizedMessage(), e);
-      throw e;
-    } catch (RuntimeException re) {
-//      //noinspection unchecked
-//      return (ResponseEntity<T>) 
-      throw logAndMakeGenericErrorResponse(re); // Sets HttpStatus to INTERNAL_SERVER_ERROR
-    } catch (Error e) {
-
-      // Errors are logged as errors, since the're caused by serious issues like bugs or resource depletion.
-      log.error(e.getMessage(), e);
-      //noinspection ProhibitedExceptionThrown
-      throw e;
-    }
+    return new ResponseEntity<>(method.doService(), successStatus);
   }
 }
