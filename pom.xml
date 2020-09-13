@@ -112,7 +112,7 @@
 			<!--Handles serialization/deserialization of new Java Date/Time classes-->
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
-			<version>2.6.5</version>
+			<version>2.9.8</version>
 		</dependency>
 		
 		<!-- Bean Validation API support -->
