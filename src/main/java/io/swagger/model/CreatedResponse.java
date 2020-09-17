@@ -1,16 +1,23 @@
 package io.swagger.model;
 
 import java.util.Objects;
-import javax.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.validation.annotation.Validated;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 
 /**
  * CreatedResponse
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-10-05T10:50:14.597Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2020-09-14T10:11:39.090Z")
+
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 
 public class CreatedResponse   {
   @JsonProperty("id")
@@ -27,11 +34,12 @@ public class CreatedResponse   {
     return this;
   }
 
-   /**
+  /**
    * Get id
    * @return id
   **/
-  @ApiModelProperty(value = "")
+  @ApiModelProperty(required = true, value = "")
+  @NotNull
 
 
   public Integer getId() {
@@ -47,7 +55,7 @@ public class CreatedResponse   {
     return this;
   }
 
-   /**
+  /**
    * Get message
    * @return message
   **/
@@ -68,7 +76,7 @@ public class CreatedResponse   {
     return this;
   }
 
-   /**
+  /**
    * Json description of result.
    * @return body
   **/
@@ -85,7 +93,7 @@ public class CreatedResponse   {
 
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(java.lang.Object o) {
     if (this == o) {
       return true;
     }

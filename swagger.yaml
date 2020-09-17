@@ -15,17 +15,17 @@ paths:
       description: |
         Add a MenuItem, complete with MenuItemOptions, to the database. Since MenuItemOptions are always linked to specific MenuItems, they are created, updated, and removed by using the MenuItem API. More options may be added later with the /MenuItem/addOption/ API.
       operationId: addMenuItem
-      parameters: 
-      - in: body
-        name: menuItem
-        description: Complete menu item, with MenuItemOptions
-        required: true
-        schema:
-          $ref: '#/definitions/MenuItemDto'
+      parameters:
+        - in: body
+          name: menuItem
+          description: Complete menu item, with MenuItemOptions
+          required: true
+          schema:
+            $ref: '#/definitions/MenuItemDto'
       consumes:
-      - application/json
-      produces: 
-      - application/json
+        - application/json
+      produces:
+        - application/json
       responses:
         201:
           description: Menu Item Created
@@ -35,20 +35,36 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/CreatedResponse'
+    get:
+      summary: Get all menu items.
+      description: |
+        Retrieve all menu items
+      operationId: getAll
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Found
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/MenuItemDto'
   /menuItem/{id}:
     get:
       summary: Gets a menuItem by ID
       description: Gets a MenuItem by its ID.
       operationId: getMenuItem
+      consumes:
+        - application/json
       produces:
-      - application/json
+        - application/json
       parameters:
-      - in: path
-        name: id
-        description: id of menuItem to find
-        required: true
-        type: integer
-        format: int32
+        - in: path
+          name: id
+          description: id of menuItem to find
+          required: true
+          type: integer
+          format: int32
       responses:
         200:
           description: Found
@@ -59,24 +75,26 @@ paths:
   /menuItem/addOption/{menuItemId}:
     post:
       summary: Add a menuItemOption
-      description: | 
+      description: |
         Add a MenuItemOption to a MenuItem.
       operationId: addMenuItemOption
       parameters:
-      - in: path
-        name: menuItemId
-        required: true
-        description: ID of the MenuItem getting the new option
-        type: integer
-        format: int32
-      - in: body
-        required: true
-        name: option
-        description: MenuItemOption
-        schema:
-          $ref: '#/definitions/MenuItemOptionDto'
-      produces: 
-      - application/json
+        - in: path
+          name: menuItemId
+          required: true
+          description: ID of the MenuItem getting the new option
+          type: integer
+          format: int32
+        - in: body
+          required: true
+          name: option
+          description: MenuItemOption
+          schema:
+            $ref: '#/definitions/MenuItemOptionDto'
+      produces:
+        - application/json
+      consumes:
+        - application/json
       responses:
         201:
           description: MenuItemOption added
@@ -92,14 +110,14 @@ paths:
       description: Delete a MenuItemOption from a MenuItem.
       operationId: deleteOption
       parameters:
-      - in: path
-        name: optionId
-        required: true
-        description: ID of the MenuItemOpton to delete
-        type: integer
-        format: int32
-      produces: 
-      - application/json
+        - in: path
+          name: optionId
+          required: true
+          description: ID of the MenuItemOpton to delete
+          type: integer
+          format: int32
+      produces:
+        - application/json
       responses:
         200:
           description: MenuItemOption deleted
@@ -114,16 +132,16 @@ paths:
         Place an order of a MenuItem, with a list of MenuItemOptions. This creates a new ServerOrder, with a single CustomerOrder for a specific MenuItem, with no options yet.
       operationId: addOrder
       consumes:
-      - application/json
-      produces: 
-      - application/json
+        - application/json
+      produces:
+        - application/json
       parameters:
-      - in: body
-        name: order
-        description: The contents of the order
-        schema:
-          $ref: '#/definitions/CustomerOrderDto'
-        required: true
+        - in: body
+          name: order
+          description: The contents of the order
+          schema:
+            $ref: '#/definitions/CustomerOrderDto'
+          required: true
       responses:
         201:
           description: Order Placed
@@ -139,22 +157,22 @@ paths:
         Update an order for a MenuItem, with a list of MenuItemOptions. This is one way to add items to an order. This may also be done with the /order/addMenuItemOption/ API.
       operationId: updateOrder
       consumes:
-      - application/json
-      produces: 
-      - application/json
+        - application/json
+      produces:
+        - application/json
       parameters:
-      - in: body
-        name: order
-        description: The contents of the order
-        required: true
-        schema:
-          $ref: '#/definitions/CustomerOrderDto'
+        - in: body
+          name: order
+          description: The contents of the order
+          required: true
+          schema:
+            $ref: '#/definitions/CustomerOrderDto'
       responses:
         202:
           description: Order Updated
           schema:
             $ref: '#/definitions/CreatedResponse'
-          
+
         400:
           description: Bad Request
           schema:
@@ -166,14 +184,14 @@ paths:
         Mark a server order complete. A Complete server order is an order that has been delivered.
       operationId: completeOrder
       parameters:
-      - in: path
-        name: id
-        description: The id of the completed order
-        required: true
-        type: integer
-        format: int32
-      produces: 
-      - application/json
+        - in: path
+          name: id
+          description: The id of the completed order
+          required: true
+          type: integer
+          format: int32
+      produces:
+        - application/json
       responses:
         202:
           description: Order Completed
@@ -190,14 +208,14 @@ paths:
         Retrieve an order by its ID.
       operationId: searchForOrder
       produces:
-      - applicaton/json
+        - applicaton/json
       parameters:
-      - in: path
-        name: id
-        description: id of the order to search for
-        required: true
-        type: integer
-        format: int32
+        - in: path
+          name: id
+          description: id of the order to search for
+          required: true
+          type: integer
+          format: int32
       responses:
         200:
           description: search results found
@@ -213,23 +231,23 @@ paths:
         Delete an order. This is not the same as marking it complete. Canceled orders should be deleted. Delivered orders should be marked complete.
       operationId: deleteOrder
       parameters:
-      - in: path
-        name: id
-        description: The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.
-        required: true
-        type: integer
-        format: int32
-      produces: 
-      - application/json
+        - in: path
+          name: id
+          description: The id of the order to delete. Note that this does not mark it complete. Completed orders should not be deleted, but should be marked complete at /order/complete/.
+          required: true
+          type: integer
+          format: int32
+      # produces: 
+      # - application/json
       responses:
         202:
           description: Order Deleted
-          schema:
-            $ref: '#/definitions/CreatedResponse'
+          # schema:
+          #   $ref: '#/definitions/CreatedResponse'
         400:
           description: Bad Request
-          schema:
-            $ref: '#/definitions/CreatedResponse'
+          # schema:
+          #   $ref: '#/definitions/CreatedResponse'
   /order/addMenuItemOption/{customer_order_id}/{menu_option_id}:
     post:
       summary: Add a menuItemOption to a customer order.
@@ -237,20 +255,20 @@ paths:
         Add a menu item option, taken from the Order's menu item, to the specified open order.
       operationId: addMenuItemOptionToCustomerOrder
       parameters:
-      - in: path
-        name: customer_order_id
-        description: The id of the customer order
-        required: true
-        type: integer
-        format: int32
-      - in: path
-        name: menu_option_id
-        description: The id of Menu Item Option to add
-        required: true
-        type: integer
-        format: int32
+        - in: path
+          name: customer_order_id
+          description: The id of the customer order
+          required: true
+          type: integer
+          format: int32
+        - in: path
+          name: menu_option_id
+          description: The id of Menu Item Option to add
+          required: true
+          type: integer
+          format: int32
       produces:
-      - application/json
+        - application/json
       responses:
         202:
           description: Addition successful
@@ -258,35 +276,7 @@ paths:
             $ref: '#/definitions/CreatedResponse'
         400:
           description: Bad Request
- 
-  /order/addCustomerOrder/{order_id}/{menu_item_id}:
-    post:
-      summary: Add a menuItemOption to the order.
-      description: |
-        Add a new menu item to the specified open server order.
-      operationId: addMenuItemToServerOrder
-      parameters:
-      - in: path
-        name: order_id
-        description: The id of the customer order
-        required: true
-        type: integer
-        format: int32
-      - in: path
-        name: menu_item_id
-        description: The id of Menu Item Option to add
-        required: true
-        type: integer
-        format: int32
-      produces: 
-      - application/json
-      responses:
-        202:
-          description: Order Completed
-          schema:
-            $ref: '#/definitions/CreatedResponse'
-        400:
-          description: Bad Request
+
   /order/search:
     get:
       summary: search for an order by completed status and order date, over a date range
@@ -294,28 +284,28 @@ paths:
         Retrieve a server order by its completed status, with a date range. Returns an array of items. If you leave the starting date blank, it will default to the current date. If you leave the ending field blank, it will default to the start date. Both dates are inclusive, so searching for the same day in both fields will search for that day. Leaving the Complete field blank will cause it to search for all orders, regardless of their complete status. Formats for starting and ending dates are yyyy-MM-ddX or yyyy-MM-ddTHH:mmX for a specific time.
       operationId: searchByComplete
       produces:
-      - applicaton/json
+        - applicaton/json
       parameters:
-      - in: query
-        name: complete
-        type: boolean
-        required: false
-        description: |
-          If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.
-      - in: query
-        name: startingDate
-        required: true
-        description: |
-          Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format is yyyy-MM-dd or yyyy-MM-dd HH-mm for a specific time. Except the dash between HH and mm is supposed to be a colon, but I can't show it with the build software I'm using.
-        type: string
-        format: date-time
-      - in: query
-        name: endingDate
-        description: |
-          End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format is yyyy-MM-ddX or yyyy-MM-ddTHH:mmX for a specific time
-        type: string
-        format: date-time
-        required: false
+        - in: query
+          name: complete
+          type: boolean
+          required: false
+          description: |
+            If true, search for compete orders. If false, search for incomplete orders. If missing, returns both incomplete and complete in the date range.
+        - in: query
+          name: startingDate
+          required: true
+          description: |
+            Start of the date range for the order date to search for, inclusive, or the current date if left blank. Format is yyyy-MM-dd or yyyy-MM-dd HH-mm for a specific time. Except the dash between HH and mm is supposed to be a colon, but I can't show it with the build software I'm using.
+          type: string
+          format: date-time
+        - in: query
+          name: endingDate
+          description: |
+            End of the date range for the order date to search for, inclusive. If left blank, the current date is used. Format is yyyy-MM-ddX or yyyy-MM-ddTHH:mmX for a specific time
+          type: string
+          format: date-time
+          required: false
       responses:
         200:
           description: search results found
@@ -362,6 +352,9 @@ definitions:
       id:
         type: integer
         format: int32
+    required:
+      - name
+      - itemPrice
   CustomerOrderDto:
     properties:
       menuItem:
@@ -387,25 +380,87 @@ definitions:
     # created object.
     properties:
       id:
-        # Note on numbers:
-        #   string  int32 gives String
-        #   integer int32 gives Integer
-        #   number  int32 gives BigDecimal
-        # I don't know how to get BigInteger.
         type: integer
         format: int32
+        # Note on numbers:
+        #   integer int32     gives Integer
+        #   integer int64     gives Long
+        #   number  int32     gives BigDecimal
+        #   number  int64     gives BigDecimal
+        #   number  double    gives Double
+        #   number  float     gives Float
+        #   string            gives String
+        #   string  byte      gives byte[ ]
+        #   string  binary    gives File
+        #   string  date      gives LocalDate
+        #   string  date-time gives OffsetDateTime
+        #   string  password  gives String
+        #   boolean           gives Boolean
+        # Undocumented:
+        #   integer byte      gives Integer
+        #   integer binary    gives Integer
+        #   integer date      gives Integer
+        #   string  int32     gives String
+        #   string  int64     gives String
+        # I don't know how to get BigInteger.
+      # intx:
+      #   type: integer
+      #   format: decimal
+      # bd:
+      #   type: integer
+      #   format: biginteger
+      # bd2:
+      #   type: integer
+      #   format: bigInteger
+      # bd3:
+      #   type: integer
+      #   format: BigInteger
+      # dbl:
+      #   type: number
+      #   format: double
+      # flt:
+      #   type: number
+      #   format: float
+      # str:
+      #   type: string
+      # pw:
+      #   type: string
+      #   format: password
+      # bool:
+      #   type: boolean
+      # intByte:
+      #   type: integer
+      #   format: byte
+      # intBinary:
+      #   type: integer
+      #   format: binary
+      # intDate:
+      #   type: integer
+      #   format: date
+      # int64:
+      #   type: integer
+      #   format: int64
+      # string64:
+      #   type: string
+      #   format: int64
+      # numBigInt:
+      #   type: number
+      #   format: bigint
+      # num64:
+      #   type: number
+      #   format: int64
       message:
         type: string
       body:
         description: Json description of result.
         type: string
     required:
-    - code
-    - message
+      - id
+      - message
 # Added by API Auto Mocking Plugin
 host: virtserver.swaggerhub.com
 schemes:
-- https
-- http
+  - https
+  - http
 # Added by API Auto Mocking Plugin
 basePath: /NeptuneDreams/FoodOrders/1.0.0

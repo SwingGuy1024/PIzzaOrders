@@ -1,4 +1,4 @@
-package io.swagger.api;
+package com.disney.miguelmunoz.challenge.server;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -209,7 +209,7 @@ public class OrderApiControllerTest {
       pizzaResponse = orderApiController.addMenuItemOptionToCustomerOrder(orderM5cId, 10000);
       fail(pizzaResponse.toString());
     } catch (NotFound404Exception e) {
-      assertThat(e.getMessage(), containsString("Missing object at id 10000"));
+      assertThat(e.getMessage(), containsString("Missing entity at id 10000"));
     } catch(Throwable t) {
       log.error("Strange exception of {}: {}", t.getClass().getName(), t.getMessage(), t);
     }

@@ -1,4 +1,4 @@
-package io.swagger.api;
+package com.disney.miguelmunoz.challenge.server;
 
 import javax.xml.bind.annotation.XmlTransient;
 

@@ -1,5 +1,6 @@
 package com.disney.miguelmunoz.challenge.util;
 
+import java.util.function.Supplier;
 import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import io.swagger.model.CreatedResponse;
 import org.slf4j.Logger;
@@ -18,12 +19,6 @@ public enum ResponseUtility {
   ;
   private static final Logger log = LoggerFactory.getLogger(ResponseUtility.class);
 
-  public static InternalServerError500Exception logAndMakeGenericErrorResponse(RuntimeException t) {
-    log.error(t.getMessage(), t);
-    return new InternalServerError500Exception(t);
-  }
-  
-
   private static CreatedResponse buildCreatedResponseWithId(Integer id) {
     CreatedResponse response = new CreatedResponse();
     response.setId(id);
@@ -36,10 +31,11 @@ public enum ResponseUtility {
    * @param <T> The return type
    * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
    * @throws ResponseException if the method fails
-   * @see #serve(HttpStatus, ServiceMethod) 
-   * @see ServiceMethod#doService() 
+   * @see #serve(HttpStatus, Supplier)
+   * @see #serve(HttpStatus, Supplier) 
+   * @see Supplier#get() 
    */
-  public static <T> ResponseEntity<T> serveCreated(ServiceMethod<T> method) throws ResponseException {
+  public static <T> ResponseEntity<T> serveCreated(Supplier<T> method) throws ResponseException {
     assert method != null;
     return serve(HttpStatus.CREATED, method);
   }
@@ -50,12 +46,12 @@ public enum ResponseUtility {
    * @param method A method that creates the resource and returns the id of the created resource as an Integer.
    * @return A ResponseEntity that holds a CreatedResponse, which itself holds the id of the created resource.
    * @throws ResponseException if the method fails
-   * @see #serve(HttpStatus, ServiceMethod)
-   * @see ServiceMethod#doService()
+   * @see #serve(HttpStatus, Supplier)
+   * @see Supplier#get()
    */
-  public static ResponseEntity<CreatedResponse> serveCreatedById(ServiceMethod<Integer> method) throws ResponseException {
+  public static ResponseEntity<CreatedResponse> serveCreatedById(Supplier<Integer> method) throws ResponseException {
     assert method != null;
-    return serveCreated(() -> buildCreatedResponseWithId(method.doService()));
+    return serveCreated(() -> buildCreatedResponseWithId(method.get()));
   }
 
   /**
@@ -65,25 +61,25 @@ public enum ResponseUtility {
    * @param method A method that creates the resource and returns the id of the created resource as an Integer.
    * @return A ResponseEntity that holds a CreatedResponse, which itself holds the id of the created resource.
    * @throws ResponseException if the method fails
-   * @see #serve(HttpStatus, ServiceMethod)
-   * @see ServiceMethod#doService()
+   * @see #serve(HttpStatus, Supplier)
+   * @see Supplier#get()
    */
-  public static ResponseEntity<CreatedResponse> serveById(HttpStatus successStatus, ServiceMethod<Integer> method) throws ResponseException {
+  public static ResponseEntity<CreatedResponse> serveById(HttpStatus successStatus, Supplier<Integer> method) throws ResponseException {
     assert method != null;
-    return serve(successStatus, () -> buildCreatedResponseWithId(method.doService()));
+    return serve(successStatus, () -> buildCreatedResponseWithId(method.get()));
   }
 
   /**
    * Serve the data, using HttpStatus.OK as the response if successful. This method delegates the work to serve().
    *
-   * @param method The service method that does the work of the service, and returns an instance of type T
    * @param <T>    The return type
+   * @param method The service method that does the work of the service, and returns an instance of type T
    * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
    * @throws ResponseException if the method fails
-   * @see #serve(HttpStatus, ServiceMethod)
-   * @see ServiceMethod#doService()
+   * @see #serve(HttpStatus, Supplier)
+   * @see Supplier#get()
    */
-  public static <T> ResponseEntity<T> serveOK(ServiceMethod<T> method) throws ResponseException {
+  public static <T> ResponseEntity<T> serveOK(Supplier<T> method) throws ResponseException {
     return serve(HttpStatus.OK, method);
   }
 
@@ -115,17 +111,22 @@ public enum ResponseUtility {
    *     });
    *   }
    * </pre>
+   * @param <T> The return type. 
    * @param successStatus The status to use if the ServiceMethod's doService() method (the lambda expression) completes
    *                      successfully.
    * @param method The service method that does the work of the service, and returns an instance of type T
-   * @param <T> The return type. 
    * @return A {@literal ResponseEntity<T>} holding the value returned by the ServiceMethod's doService() method.
    * @throws ResponseException if the method fails
-   * @see ServiceMethod#doService() 
+   * @see Supplier#get() 
    * @see ResponseException
    */
-  public static <T> ResponseEntity<T> serve(HttpStatus successStatus, ServiceMethod<T> method) throws ResponseException {
+  public static <T> ResponseEntity<T> serve(HttpStatus successStatus, Supplier<T> method) throws ResponseException {
     assert method != null;
-    return new ResponseEntity<>(method.doService(), successStatus);
+    try {
+      return new ResponseEntity<>(method.get(), successStatus);
+    } catch (ResponseException e) {
+      log.warn(e.getMessage(), e);
+      throw e;
+    }
   }
 }

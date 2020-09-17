@@ -1,18 +1,26 @@
 package io.swagger.model;
 
+import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import io.swagger.model.MenuItemOptionDto;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import javax.validation.Valid;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
 import org.springframework.validation.annotation.Validated;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 
 /**
  * MenuItemDto
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-10-05T10:50:14.597Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2020-09-14T10:11:39.090Z")
+
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 
 public class MenuItemDto   {
   @JsonProperty("name")
@@ -33,11 +41,12 @@ public class MenuItemDto   {
     return this;
   }
 
-   /**
+  /**
    * Get name
    * @return name
   **/
-  @ApiModelProperty(value = "")
+  @ApiModelProperty(required = true, value = "")
+  @NotNull
 
 
   public String getName() {
@@ -53,11 +62,12 @@ public class MenuItemDto   {
     return this;
   }
 
-   /**
+  /**
    * Floating point price. Strings are easier to work with.
    * @return itemPrice
   **/
-  @ApiModelProperty(value = "Floating point price. Strings are easier to work with.")
+  @ApiModelProperty(required = true, value = "Floating point price. Strings are easier to work with.")
+  @NotNull
 
 
   public String getItemPrice() {
@@ -81,7 +91,7 @@ public class MenuItemDto   {
     return this;
   }
 
-   /**
+  /**
    * Get allowedOptions
    * @return allowedOptions
   **/
@@ -97,12 +107,12 @@ public class MenuItemDto   {
     this.allowedOptions = allowedOptions;
   }
 
-//  public MenuItemDto id(Integer id) {
-//    this.id = id;
-//    return this;
-//  }
-//
-   /**
+  public MenuItemDto id(Integer id) {
+    this.id = id;
+    return this;
+  }
+
+  /**
    * Get id
    * @return id
   **/
@@ -119,7 +129,7 @@ public class MenuItemDto   {
 
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(java.lang.Object o) {
     if (this == o) {
       return true;
     }
@@ -155,7 +165,7 @@ public class MenuItemDto   {
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).
    */
-  private String toIndentedString(Object o) {
+  private String toIndentedString(java.lang.Object o) {
     if (o == null) {
       return "null";
     }

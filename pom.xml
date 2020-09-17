@@ -28,14 +28,55 @@
 	</parent>
 
 	<build>
+		<sourceDirectory>src/main/java</sourceDirectory>
 		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
+<!--			<plugin>-->
+<!--				<groupId>org.springframework.boot</groupId>-->
+<!--				<artifactId>spring-boot-maven-plugin</artifactId>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<goals>-->
+<!--							<goal>repackage</goal>-->
+<!--						</goals>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
+			
+			<!-- I tried the swagger plug-in, but it doesn't let me set the options I need to set. I can't specify Java 8, for example, -->
+			<!-- so it uses Joda time rather than the new Java 8 classes. -->
+<!--			<plugin>-->
+<!--				<groupId>io.swagger</groupId>-->
+<!--				<artifactId>swagger-codegen-maven-plugin</artifactId>-->
+<!--				<version>2.3.1</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<goals>-->
+<!--							<goal>generate</goal>-->
+<!--						</goals>-->
+<!--						<configuration>-->
+<!--							<inputSpec>${project.basedir}/swagger.yaml</inputSpec>-->
+<!--							<output>${project.basedir}/src/gen/java</output>-->
+<!--							<language>spring</language>-->
+<!--							<generateSupportingFiles>false</generateSupportingFiles>-->
+<!--							<withXml>false</withXml>-->
+<!--							<configOptions>-->
+<!--								<sourceFolder>src/gen/java</sourceFolder>-->
+<!--							</configOptions>-->
+<!--						</configuration>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
 		</plugins>
 	</build>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -45,13 +86,9 @@
 			<artifactId>spring-boot-starter-jersey</artifactId>
 		</dependency>
 		<!--<dependency>-->
-			<!--<groupId>org.springframework.boot</groupId>-->
-			<!--<artifactId>spring-boot-starter-web</artifactId>-->
-		<!--</dependency>-->
-		<!--<dependency>-->
-			<!--<groupId>org.apache.cxf</groupId>-->
-			<!--<artifactId>cxf-spring-boot-starter-jaxrs</artifactId>-->
-			<!--<version>3.1.11</version>-->
+		<!--<groupId>org.apache.cxf</groupId>-->
+		<!--<artifactId>cxf-spring-boot-starter-jaxrs</artifactId>-->
+		<!--<version>3.1.11</version>-->
 		<!--</dependency>-->
 
 		<dependency>
@@ -81,18 +118,18 @@
 		<!--https://stackoverflow.com/questions/43574426/how-to-resolve-java-lang-noclassdeffounderror-javax-xml-bind-jaxbexception-in-j&ndash;&gt;-->
 		<!--&lt;!&ndash;Another longer solution is provided for Java 11 in that same stackoverflow question.&ndash;&gt;-->
 		<!--<dependency>-->
-			<!--<groupId>javax.xml.bind</groupId>-->
-			<!--<artifactId>jaxb-api</artifactId>-->
-			<!--<version>2.3.0</version>-->
+		<!--<groupId>javax.xml.bind</groupId>-->
+		<!--<artifactId>jaxb-api</artifactId>-->
+		<!--<version>2.3.0</version>-->
 		<!--</dependency>-->
 
 		<!--<dependency>-->
-			<!--<groupId>com.github.joschi.jackson</groupId>-->
-			<!--<artifactId>jackson-datatype-threetenbp</artifactId>-->
-			<!--<version>2.6.4</version>-->
+		<!--<groupId>com.github.joschi.jackson</groupId>-->
+		<!--<artifactId>jackson-datatype-threetenbp</artifactId>-->
+		<!--<version>2.6.4</version>-->
 		<!--</dependency>-->
-		
-<!--		For JDK 11-->
+
+		<!--		For JDK 11-->
 
 		<!-- API, java.xml.bind module -->
 		<dependency>
@@ -107,14 +144,14 @@
 			<artifactId>jaxb-runtime</artifactId>
 			<version>2.3.2</version>
 		</dependency>
-		
+
 		<dependency>
 			<!--Handles serialization/deserialization of new Java Date/Time classes-->
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
-			<version>2.6.5</version>
+			<version>2.10.1</version> <!-- Was 2.6.5-->
 		</dependency>
-		
+
 		<!-- Bean Validation API support -->
 		<dependency>
 			<groupId>javax.validation</groupId>
@@ -122,7 +159,12 @@
 			<version>1.1.0.Final</version>
 			<scope>provided</scope>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.10.1</version>
+		</dependency>
+
 		<!--Actuator-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

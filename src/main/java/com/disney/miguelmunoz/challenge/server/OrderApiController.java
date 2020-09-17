@@ -1,12 +1,13 @@
-package io.swagger.api;
+package com.disney.miguelmunoz.challenge.server;
 
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
@@ -16,6 +17,7 @@ import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.api.OrderApi;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.CustomerOrderDto;
 import io.swagger.model.MenuItemDto;
@@ -25,9 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
@@ -36,46 +35,50 @@ import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
 
 //@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
 
-@SuppressWarnings({"HardcodedFileSeparator", "SimplifiableAnnotation"})
 @Controller
 public class OrderApiController implements OrderApi {
 
   private static final Logger log = LoggerFactory.getLogger(OrderApiController.class);
 
-//	private static final long DAY_IN_SECONDS = 24L * 60L * 60L;
-//	private static final long DAY_IN_MILLIS = DAY_IN_SECONDS * 1000L;
-	private static final Duration ONE_DAY = Duration.ofDays(1L);
-	private static final DateTimeFormatter DATE_TIME_LONG_FMT = PojoUtility.DATE_TIME_FMT;
+  private static final DateTimeFormatter DATE_TIME_LONG_FMT = PojoUtility.DATE_TIME_FMT;
 
-	private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
+
+  private final HttpServletRequest request;
 
   private final CustomerOrderRepository customerOrderRepository;
-  
+
   private final MenuItemRepository menuItemRepository;
-  
+
   private final MenuItemOptionRepository menuItemOptionRepository;
 
   @Autowired
   public OrderApiController(
-      ObjectMapper objectMapper, 
-      MenuItemRepository menuItemRepository, 
-      MenuItemOptionRepository menuItemOptionRepository, 
-      CustomerOrderRepository repository
+      ObjectMapper objectMapper,
+      HttpServletRequest request,
+      MenuItemRepository menuItemRepository,
+      MenuItemOptionRepository menuItemOptionRepository,
+      CustomerOrderRepository customerOrderRepository
   ) {
     this.objectMapper = objectMapper;
+    this.request = request;
     this.menuItemRepository = menuItemRepository;
     this.menuItemOptionRepository = menuItemOptionRepository;
-    this.customerOrderRepository = repository;
+    this.customerOrderRepository = customerOrderRepository;
   }
 
   @Override
-  @RequestMapping(value = "/order/addMenuItemOption/{order_id}/{menu_option_id}",
-      produces = {"application/json"},
-      method = RequestMethod.POST)
-  public ResponseEntity<CreatedResponse> addMenuItemOptionToCustomerOrder(
-      @PathVariable("order_id") final Integer customerOrderId,
-      @PathVariable("menu_option_id") final Integer menuOptionId
-  ) {
+  public Optional<ObjectMapper> getObjectMapper() {
+    return Optional.ofNullable(objectMapper);
+  }
+
+  @Override
+  public Optional<HttpServletRequest> getRequest() {
+    return Optional.ofNullable(request);
+  }
+
+  @Override
+  public ResponseEntity<CreatedResponse> addMenuItemOptionToCustomerOrder(final Integer customerOrderId, final Integer menuOptionId) {
     return serveById(HttpStatus.ACCEPTED, () -> {
       CustomerOrder order = customerOrderRepository.findOne(customerOrderId); // throws ResponseException
       confirmEntityFound(order, customerOrderId);
@@ -100,11 +103,7 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  @RequestMapping(value = "/order",
-      produces = {"application/json"},
-      consumes = {"application/json"},
-      method = RequestMethod.PUT)
-  public ResponseEntity<CreatedResponse> addOrder(CustomerOrderDto order) {
+  public ResponseEntity<CreatedResponse> addOrder(final CustomerOrderDto order) {
     return serveCreatedById(() -> {
       CustomerOrder orderEntity = makeCustomerOrder(order);
       confirmNull(orderEntity.getId());
@@ -127,10 +126,7 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  @RequestMapping(value = "/order/complete/{id}",
-      produces = {"application/json"},
-      method = RequestMethod.POST)
-  public ResponseEntity<CreatedResponse> completeOrder(@PathVariable("id") final Integer id) {
+  public ResponseEntity<CreatedResponse> completeOrder(final Integer id) {
     return serveById(HttpStatus.ACCEPTED, () -> {
       CustomerOrder order = customerOrderRepository.findOne(id);
       confirmEntityFound(order, id);
@@ -148,10 +144,7 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  @RequestMapping(value = "/order/{id}",
-      produces = {"application/json"},
-      method = RequestMethod.DELETE)
-  public ResponseEntity<Void> deleteOrder(@PathVariable("id") final Integer id) {
+  public ResponseEntity<Void> deleteOrder(final Integer id) {
     return serve(HttpStatus.ACCEPTED, () -> {
       confirmNeverNull(id);
       customerOrderRepository.delete(id);
@@ -160,14 +153,7 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  @RequestMapping(value = "/order/search",
-      produces = {"application/json"},
-      method = RequestMethod.GET)
-  public ResponseEntity<List<CustomerOrderDto>> searchByComplete(
-      final OffsetDateTime startingDate, 
-      final Boolean complete, 
-      final OffsetDateTime endingDate
-  ) {
+  public ResponseEntity<List<CustomerOrderDto>> searchByComplete(final OffsetDateTime startingDate, final Boolean complete, final OffsetDateTime endingDate) {
     return serveOK(() -> {
       // Records whether it parsed both Date and Time or just Date.
 
@@ -199,12 +185,8 @@ public class OrderApiController implements OrderApi {
     return dtoList;
   }
 
-
   @Override
-  @RequestMapping(value = "/order/{id}",
-      produces = {"application/json"},
-      method = RequestMethod.GET)
-  public ResponseEntity<CustomerOrderDto> searchForOrder(@PathVariable("id") final Integer id) {
+  public ResponseEntity<CustomerOrderDto> searchForOrder(final Integer id) {
     return serveOK(() -> {
       CustomerOrder order = customerOrderRepository.findOne(id);
 //      SimpleDateFormat format = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
@@ -221,12 +203,11 @@ public class OrderApiController implements OrderApi {
   }
 
   @Override
-  @RequestMapping(value = "/order",
-      produces = {"application/json"},
-      consumes = {"application/json"},
-      method = RequestMethod.POST)
   public ResponseEntity<CreatedResponse> updateOrder(final CustomerOrderDto order) {
-    return null; // Not yet written.
+    serveOK(() -> {
+      throw new IllegalStateException("Isn't written yet");
+    });
+    throw new AssertionError("Not Yet Written");
   }
 
   private CustomerOrder makeCustomerOrder(final CustomerOrderDto order) {
@@ -238,16 +219,16 @@ public class OrderApiController implements OrderApi {
   List<CustomerOrder> getAllTestOnly() {
     return customerOrderRepository.findAll();
   }
-  
+
   // Used to save orders with different start dates for testing.
   CustomerOrder saveOrderTestOnly(CustomerOrder order) {
     return customerOrderRepository.save(order);
   }
-  
+
   Collection<CustomerOrder> findByOrderTimeTestOnly(OffsetDateTime findDate) {
     return customerOrderRepository.findByOrderTimeAfter(findDate);
   }
-  
+
   CustomerOrder findByIdTestOnly(Integer id) {
     return customerOrderRepository.findOne(id);
   }

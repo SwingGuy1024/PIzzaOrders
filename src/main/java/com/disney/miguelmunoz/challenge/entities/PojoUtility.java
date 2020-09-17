@@ -97,7 +97,7 @@ public enum PojoUtility {
   @SuppressWarnings("ConstantConditions")
   public static <T> T confirmEntityFound(T entity, Object id) throws ResponseException {
     if (entity == null) {
-      throw new NotFound404Exception(String.format("Missing object at id %s", id));
+      throw new NotFound404Exception(String.format("Missing entity at id %s", id));
     }
     assert isEntityAssertion(entity) : "This method is only for entities. Use confirmNeverNull()";
     return entity;

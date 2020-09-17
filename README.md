@@ -139,13 +139,37 @@ The Controller classes have public method which are called by the server, and pa
 ## Code Generation
 Generated using Swagger 2.0 Swing Server, with the following options:
 
-interface only
-not null jackson annotation
-big decimal as string
-ensure unique params
-allow unicode identifiers
+* interface only
+* not null jackson annotation
+* big decimal as string
+* ensure unique params
+* allow unicode identifiers
 
-date library: Java 8 using Instant
-developer name: Miguel Muñoz
-title: Pizza Orders
-library: Spring Boot Server Application
+* date library: Java 8 using Instant
+* developer name: Miguel Muñoz
+* title: Pizza Orders
+* library: Spring Boot Server Application
+
+### Code Generator Bugs
+#### Doubles the path
+The generator creates an application.properties file with the following property:
+
+    server.contextPath=/NeptuneDreams/CustomerOrders/1.0.0
+It also annotates each API class with this annotation:
+
+    @RequestMapping(value = "/NeptuneDreams/CustomerOrders/1.0.0")
+This makes the final path /NeptuneDreams/CustomerOrders/1.0.0/NeptuneDreams/CustomerOrders/1.0.0
+
+The fix is to change the property's value to a single slash.
+
+#### Spurious Optional
+When Java 8 is set, it adds an HttpServletRequest member. It also creates default getter for that property and the ObjectMapper property. Both properties are final and autowired, so they can't possibly have null values, so the Optional wrapper returned by the getters is unnecessary.
+
+#### Spurious default methods
+When Java 8 is set, it turns on the defaultInterfaces option, which I would rather be left off. This generates stubs as default methods for each api method. There are two consequences. First, failure to implement a recently added interface doesn't prevent compilation. Second, the stubs return a 510 Not implemented. I would rather they throw an Error. (It also takes too much code to return the 501)
+
+#### Logger
+When Default Methods is set, the API interfaces include a logger, used by the default methods. The logger is neither static, private nor final. Since it's not private, subclasses will inherit it, making it easy to mistakenly log messages with the wrong class name.
+    
+#### Date option
+When the date library is set to one of the three java 8 values, it turns on Java 8, which is fine, but this activates the three java 8 bugs.

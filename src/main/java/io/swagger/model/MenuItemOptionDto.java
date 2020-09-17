@@ -1,19 +1,27 @@
 package io.swagger.model;
 
-import java.math.BigDecimal;
 import java.util.Objects;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.math.BigDecimal;
 import org.springframework.validation.annotation.Validated;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 
 /**
  * Option for a MenuItem
  */
 @ApiModel(description = "Option for a MenuItem")
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-10-05T10:50:14.597Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2020-09-14T10:11:39.090Z")
+
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 
 public class MenuItemOptionDto   {
   @JsonProperty("name")
@@ -30,7 +38,7 @@ public class MenuItemOptionDto   {
     return this;
   }
 
-   /**
+  /**
    * Get name
    * @return name
   **/
@@ -50,13 +58,15 @@ public class MenuItemOptionDto   {
     return this;
   }
 
-   /**
+  /**
    * Floating point price. Strings are easier to work with.
    * @return deltaPrice
   **/
+  @JsonSerialize(using = ToStringSerializer.class)
   @ApiModelProperty(value = "Floating point price. Strings are easier to work with.")
 
   @Valid
+
   public BigDecimal getDeltaPrice() {
     return deltaPrice;
   }
@@ -70,7 +80,7 @@ public class MenuItemOptionDto   {
     return this;
   }
 
-   /**
+  /**
    * Get id
    * @return id
   **/
@@ -87,7 +97,7 @@ public class MenuItemOptionDto   {
 
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(java.lang.Object o) {
     if (this == o) {
       return true;
     }
@@ -121,7 +131,7 @@ public class MenuItemOptionDto   {
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).
    */
-  private String toIndentedString(Object o) {
+  private String toIndentedString(java.lang.Object o) {
     if (o == null) {
       return "null";
     }

@@ -1,6 +1,9 @@
-package io.swagger.api;
+package com.disney.miguelmunoz.challenge.server;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
@@ -9,6 +12,7 @@ import com.disney.miguelmunoz.challenge.exception.BadRequest400Exception;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.api.MenuItemApi;
 import io.swagger.model.CreatedResponse;
 import io.swagger.model.MenuItemDto;
 import io.swagger.model.MenuItemOptionDto;
@@ -17,18 +21,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
 import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
 
-// I removed the Generated annotation, because it turns inspections off for the whole class.
-//@javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2018-02-20T04:00:38.477Z")
-
-@SuppressWarnings({"HardcodedFileSeparator", "SimplifiableAnnotation"})
+//@SuppressWarnings({"HardcodedFileSeparator", "SimplifiableAnnotation"})
 @Controller
 public class MenuItemApiController implements MenuItemApi {
 
@@ -36,46 +34,53 @@ public class MenuItemApiController implements MenuItemApi {
 
   private final ObjectMapper objectMapper;
 
+  private final HttpServletRequest request;
+
   private final MenuItemRepository menuItemRepository;
-  
+
   private final MenuItemOptionRepository menuItemOptionRepository;
 
   @Autowired
   public MenuItemApiController(
-      ObjectMapper objectMapper, 
+      ObjectMapper objectMapper,
+      HttpServletRequest request,
       MenuItemOptionRepository menuItemOptionRepository,
       MenuItemRepository menuItemRepository
   ) {
     this.objectMapper = objectMapper;
+    this.request = request;
     this.menuItemRepository = menuItemRepository;
     this.menuItemOptionRepository = menuItemOptionRepository;
+    log.info("New MenuItemApiController()");
   }
 
   @Override
-  @RequestMapping(value = "/menuItem/addOption/{menuItemId}",
-      produces = {"application/json"},
-      method = RequestMethod.POST)
-  public ResponseEntity<CreatedResponse> addMenuItemOption(
-      @PathVariable("menuItemId") final Integer menuItemId,
-      @Valid @RequestBody final MenuItemOptionDto optionDto
-  ) {
+  public Optional<ObjectMapper> getObjectMapper() {
+    return Optional.ofNullable(objectMapper);
+  }
+
+  @Override
+  public Optional<HttpServletRequest> getRequest() {
+    return Optional.ofNullable(request);
+  }
+
+  @Override
+  public ResponseEntity<CreatedResponse> addMenuItemOption(final Integer menuItemId, final MenuItemOptionDto optionDto) {
+    logHeaders();
     return serveCreatedById(() -> {
       confirmNotEmpty(optionDto.getName()); // throws ResponseException
-      MenuItemOption option = objectMapper.convertValue(optionDto, MenuItemOption.class);
+      MenuItemOption menuItemOption = objectMapper.convertValue(optionDto, MenuItemOption.class);
       final MenuItem menuItem = menuItemRepository.findOne(menuItemId);
       confirmEntityFound(menuItem, menuItemId);
-      option.setMenuItem(menuItem);
-      MenuItemOption savedOption = menuItemOptionRepository.save(option);
+      menuItemOption.setMenuItem(menuItem);
+      MenuItemOption savedOption = menuItemOptionRepository.save(menuItemOption);
       return savedOption.getId();
     });
   }
 
   @Override
-  @RequestMapping(value = "/menuItem",
-      produces = {"application/json"},
-      consumes = {"application/json"},
-      method = RequestMethod.PUT)
-  public ResponseEntity<CreatedResponse> addMenuItem(@Valid @RequestBody MenuItemDto menuItemDto) {
+  public ResponseEntity<CreatedResponse> addMenuItem(final MenuItemDto menuItemDto) {
+    logHeaders();
     return serveCreatedById(() -> {
       for (MenuItemOptionDto option : skipNull(menuItemDto.getAllowedOptions())) {
         final String optionName = option.getName();
@@ -102,10 +107,8 @@ public class MenuItemApiController implements MenuItemApi {
   }
 
   @Override
-  @RequestMapping(value = "/menuItem/deleteOption/{optionId}",
-      produces = {"application/json"},
-      method = RequestMethod.DELETE)
-  public ResponseEntity<Void> deleteOption(@PathVariable("optionId") final Integer optionId) {
+  public ResponseEntity<Void> deleteOption(final Integer optionId) {
+    logHeaders();
     return serveOK(() -> {
       log.debug("Deleting menuItemOption with id {}", optionId);
 
@@ -125,8 +128,8 @@ public class MenuItemApiController implements MenuItemApi {
   }
 
   @Override
-  @RequestMapping(value = "/menuItem/{id}", produces = {"application/json"}, method = RequestMethod.GET)
-  public ResponseEntity<MenuItemDto> getMenuItem(@PathVariable("id") final Integer id) {
+  public ResponseEntity<MenuItemDto> getMenuItem(final Integer id) {
+    logHeaders();
     return serveOK(() -> {
       MenuItem menuItem = menuItemRepository.findOne(id);
       confirmEntityFound(menuItem, id);
@@ -134,17 +137,52 @@ public class MenuItemApiController implements MenuItemApi {
     });
   }
 
+  @Override
+  public ResponseEntity<List<MenuItemDto>> getAll() {
+    logHeaders();
+    return serveOK(this::getAllMenuItems);
+  }
+
+  void logHeaders() {
+//    getRequest().ifPresent((r) -> {
+//      Enumeration<String> headerNames = r.getHeaderNames();
+//      log.info("{} headers", countTokens(headerNames));
+//      headerNames = r.getHeaderNames();
+//      while (headerNames.hasMoreElements()) {
+//        String hName = headerNames.nextElement();
+//        log.info("{}: {}", hName, r.getHeader(hName));
+//      }
+//    });
+//  }
+//
+//  private int countTokens(Enumeration<?> enumeration) {
+//    int count = 0;
+//    while (enumeration.hasMoreElements()) {
+//      enumeration.nextElement();
+//      count++;
+//    }
+//    return count;
+  }
+
   ////// Package-level methods for unit tests only! //////
 
   MenuItem getMenuItemTestOnly(int id) {
     return menuItemRepository.findOne(id);
   }
-  
+
   MenuItemOption getMenuItemOptionTestOnly(int id) {
     return menuItemOptionRepository.findOne(id);
   }
-  
+
   List<MenuItemOption> findAllOptionsTestOnly() {
     return menuItemOptionRepository.findAll();
+  }
+
+  private List<MenuItemDto> getAllMenuItems() {
+    return menuItemRepository
+        .findAll()
+        .stream()
+        .map((m) -> objectMapper.convertValue(m, MenuItemDto.class))
+        .collect(Collectors.toList());
   }
 }
