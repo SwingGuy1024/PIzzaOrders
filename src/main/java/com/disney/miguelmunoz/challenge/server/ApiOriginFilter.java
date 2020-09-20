@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
+import com.disney.miguelmunoz.challenge.util.ReplaceChain;
 import org.apache.catalina.connector.RequestFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiOriginFilter implements javax.servlet.Filter {
   private static final Logger log = LoggerFactory.getLogger(ApiOriginFilter.class);
+
   @Override
   public void doFilter(ServletRequest request, ServletResponse response,
                        FilterChain chain) throws IOException, ServletException {
@@ -53,14 +55,22 @@ public class ApiOriginFilter implements javax.servlet.Filter {
   public void init(FilterConfig filterConfig) throws ServletException {
   }
 
+  private static final Pattern OPEN_BRACE_PATTERN = Pattern.compile("%7B");
+  private static final Pattern CLOSE_BRACE_PATTERN = Pattern.compile("%7D");
+
   /**
    *  Replace %7B and %7D with curly braces in url paths
    * @param request The request string
    * @return the corrected String
    */
   private static final String charFilter(final String request) {
-    return request
-        .replaceAll("%7B", "{")
-        .replaceAll("%7D", "}");
+    return ReplaceChain.build(request)
+        .replaceAll(OPEN_BRACE_PATTERN, "{")
+        .replaceAll(CLOSE_BRACE_PATTERN, "}")
+        .toString();
+  }
+  
+  private static String findAndReplace(String s, Pattern match, String replacement) {
+    return match.matcher(s).replaceAll(replacement);
   }
 }

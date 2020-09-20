@@ -1,6 +1,5 @@
 package com.disney.miguelmunoz.challenge;
 
-import com.disney.miguelmunoz.challenge.exception.ResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;

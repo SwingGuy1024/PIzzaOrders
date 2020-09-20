@@ -141,6 +141,7 @@ Generated using Swagger 2.0 Swing Server, with the following options:
 
 * interface only
 * not null jackson annotation
+* use bean validation [^1]
 * big decimal as string
 * ensure unique params
 * allow unicode identifiers
@@ -149,6 +150,10 @@ Generated using Swagger 2.0 Swing Server, with the following options:
 * developer name: Miguel Muñoz
 * title: Pizza Orders
 * library: Spring Boot Server Application
+
+[^1] For an example of how to use Bean Validation, see https://www.logicbig.com/tutorials/java-ee-tutorial/bean-validation/cascaded-validation.html
+
+† For an example of how to use Bean Validation, see https://www.logicbig.com/tutorials/java-ee-tutorial/bean-validation/cascaded-validation.html
 
 ### Code Generator Bugs
 #### Doubles the path
