@@ -11,8 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
-import com.disney.miguelmunoz.challenge.entities.PojoUtility;
-import com.disney.miguelmunoz.challenge.exception.ResponseException;
+import com.disney.miguelmunoz.framework.PojoUtility;
+import com.disney.miguelmunoz.framework.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
@@ -28,8 +28,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
-import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
+import static com.disney.miguelmunoz.framework.PojoUtility.*;
+import static com.disney.miguelmunoz.framework.ResponseUtility.*;
 
 //import java.util.Date;
 

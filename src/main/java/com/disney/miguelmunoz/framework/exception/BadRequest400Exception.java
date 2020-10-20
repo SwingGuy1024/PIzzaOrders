@@ -1,4 +1,4 @@
-package com.disney.miguelmunoz.challenge.exception;
+package com.disney.miguelmunoz.framework.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

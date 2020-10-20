@@ -29,6 +29,10 @@ or
 
 `java -jar target/miguelmunoz.challenge-0.0.1-SNAPSHOT.jar`
 
+## Build
+This uses maven to build. It has been tested using Maven v3.6.3 and Java 1.8.0_212.
+Maven uses Java 9.0.4
+
 ## REST API Documentation
 
 You can view the api documentation in swagger-ui by launching the server, then go to 

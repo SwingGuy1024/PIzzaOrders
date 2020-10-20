@@ -1,4 +1,4 @@
-package com.disney.miguelmunoz.challenge.entities;
+package com.disney.miguelmunoz.framework;
 
 import java.lang.annotation.Annotation;
 import java.time.format.DateTimeFormatter;
@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Entity;
-import com.disney.miguelmunoz.challenge.exception.BadRequest400Exception;
-import com.disney.miguelmunoz.challenge.exception.NotFound404Exception;
-import com.disney.miguelmunoz.challenge.exception.ResponseException;
+import com.disney.miguelmunoz.framework.exception.BadRequest400Exception;
+import com.disney.miguelmunoz.framework.exception.NotFound404Exception;
+import com.disney.miguelmunoz.framework.exception.ResponseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;

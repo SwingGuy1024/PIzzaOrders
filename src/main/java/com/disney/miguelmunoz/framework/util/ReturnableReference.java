@@ -1,4 +1,4 @@
-package com.disney.miguelmunoz.challenge.util;
+package com.disney.miguelmunoz.framework.util;
 
 /**
  * Useful when a method needs to return multiple values. This is intended to be used as a parameter

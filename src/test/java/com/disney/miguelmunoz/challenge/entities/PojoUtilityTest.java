@@ -1,5 +1,6 @@
 package com.disney.miguelmunoz.challenge.entities;
 
+import com.disney.miguelmunoz.framework.PojoUtility;
 import org.junit.Test;
 
 /**
@@ -13,14 +14,14 @@ public class PojoUtilityTest {
   @Test(expected = AssertionError.class)
   public void neverNullAssertionTest() {
     // NOTE: This test assumes assertions are turned on during testing. If assertions are off, this test will fail.
-    com.disney.miguelmunoz.challenge.entities.PojoUtility.confirmNeverNull(new MenuItem());
+    PojoUtility.confirmNeverNull(new MenuItem());
     testIfAssertionsAreOn(); // makes test pass if assertions are off.
   }
   
   @Test(expected = AssertionError.class)
   // NOTE: This test assumes assertions are turned on during testing. If assertions are off, this test will fail.
   public void confirmFoundAssertionTest() {
-    com.disney.miguelmunoz.challenge.entities.PojoUtility.confirmEntityFound("x", 0);
+    PojoUtility.confirmEntityFound("x", 0);
     testIfAssertionsAreOn(); // makes test pass if assertions are off.
   }
 

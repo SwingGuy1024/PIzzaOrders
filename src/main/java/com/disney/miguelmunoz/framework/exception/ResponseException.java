@@ -1,4 +1,4 @@
-package com.disney.miguelmunoz.challenge.exception;
+package com.disney.miguelmunoz.framework.exception;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.http.HttpStatus;

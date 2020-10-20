@@ -1,7 +1,7 @@
-package com.disney.miguelmunoz.challenge.util;
+package com.disney.miguelmunoz.framework;
 
 import java.util.function.Supplier;
-import com.disney.miguelmunoz.challenge.exception.ResponseException;
+import com.disney.miguelmunoz.framework.exception.ResponseException;
 import io.swagger.model.CreatedResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -2,6 +2,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 
 spring-server-generated/
+gen/
 
 ### STS ###
 .apt_generated

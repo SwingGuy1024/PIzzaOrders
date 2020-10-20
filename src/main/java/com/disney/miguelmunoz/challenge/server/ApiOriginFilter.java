@@ -10,7 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
-import com.disney.miguelmunoz.challenge.util.ReplaceChain;
+import com.disney.miguelmunoz.framework.util.ReplaceChain;
 import org.apache.catalina.connector.RequestFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

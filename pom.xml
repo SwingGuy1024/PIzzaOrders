@@ -42,30 +42,6 @@
 <!--				</executions>-->
 <!--			</plugin>-->
 			
-			<!-- I tried the swagger plug-in, but it doesn't let me set the options I need to set. I can't specify Java 8, for example, -->
-			<!-- so it uses Joda time rather than the new Java 8 classes. -->
-<!--			<plugin>-->
-<!--				<groupId>io.swagger</groupId>-->
-<!--				<artifactId>swagger-codegen-maven-plugin</artifactId>-->
-<!--				<version>2.3.1</version>-->
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<goals>-->
-<!--							<goal>generate</goal>-->
-<!--						</goals>-->
-<!--						<configuration>-->
-<!--							<inputSpec>${project.basedir}/swagger.yaml</inputSpec>-->
-<!--							<output>${project.basedir}/src/gen/java</output>-->
-<!--							<language>spring</language>-->
-<!--							<generateSupportingFiles>false</generateSupportingFiles>-->
-<!--							<withXml>false</withXml>-->
-<!--							<configOptions>-->
-<!--								<sourceFolder>src/gen/java</sourceFolder>-->
-<!--							</configOptions>-->
-<!--						</configuration>-->
-<!--					</execution>-->
-<!--				</executions>-->
-<!--			</plugin>-->
 		</plugins>
 	</build>
 	<dependencies>

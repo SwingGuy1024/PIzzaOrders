@@ -7,8 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
-import com.disney.miguelmunoz.challenge.entities.PojoUtility;
-import com.disney.miguelmunoz.challenge.exception.BadRequest400Exception;
+import com.disney.miguelmunoz.framework.PojoUtility;
+import com.disney.miguelmunoz.framework.exception.BadRequest400Exception;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,8 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import static com.disney.miguelmunoz.challenge.entities.PojoUtility.*;
-import static com.disney.miguelmunoz.challenge.util.ResponseUtility.*;
+import static com.disney.miguelmunoz.framework.PojoUtility.*;
+import static com.disney.miguelmunoz.framework.ResponseUtility.*;
 
 //@SuppressWarnings({"HardcodedFileSeparator", "SimplifiableAnnotation"})
 @Controller
