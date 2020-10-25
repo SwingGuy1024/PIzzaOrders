@@ -76,6 +76,7 @@ public class MenuItemApiControllerTest {
     ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
     assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
     CreatedResponse body = responseEntity.getBody();
+    assertNotNull(body);
     Integer id = body.getId();
     if (id != null) {
       MenuItem item = menuItemApiController.getMenuItemTestOnly(id);
@@ -127,10 +128,12 @@ public class MenuItemApiControllerTest {
   
   @Test
   public void testDeleteOption() throws ResponseException {
+    assertNotNull(menuItemApiController.getRequest());
+    
     MenuItemDto menuItemDto = createPizzaMenuItem();
     ResponseEntity<CreatedResponse> responseEntity = menuItemApiController.addMenuItem(menuItemDto);
     CreatedResponse body = responseEntity.getBody();
-    System.out.printf("Body: <%s>%n", body);
+    assertNotNull(body);
     Integer id = body.getId();
     
     MenuItem item = menuItemApiController.getMenuItemTestOnly(id);

@@ -12,6 +12,7 @@ import com.disney.miguelmunoz.challenge.entities.CustomerOrder;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
 import com.disney.miguelmunoz.framework.PojoUtility;
+import com.disney.miguelmunoz.framework.exception.NotFound404Exception;
 import com.disney.miguelmunoz.framework.exception.ResponseException;
 import com.disney.miguelmunoz.challenge.repositories.CustomerOrderRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
@@ -80,11 +81,10 @@ public class OrderApiController implements OrderApi {
   @Override
   public ResponseEntity<CreatedResponse> addMenuItemOptionToCustomerOrder(final Integer customerOrderId, final Integer menuOptionId) {
     return serveById(HttpStatus.ACCEPTED, () -> {
-      CustomerOrder order = customerOrderRepository.findOne(customerOrderId); // throws ResponseException
-      confirmEntityFound(order, customerOrderId);
+      CustomerOrder order = findOrThrow(customerOrderRepository, customerOrderId);
       MenuItem item = order.getMenuItem();
       confirmItemHasOptionId(item, menuOptionId); // throws ResponseException
-      MenuItemOption option = menuItemOptionRepository.findOne(menuOptionId); // throws ResponseException
+      MenuItemOption option = findOrThrow(menuItemOptionRepository, menuOptionId); // throws ResponseException
       order.getOptions().add(option);
       CustomerOrder updatedOrder = customerOrderRepository.save(order);
 
@@ -92,7 +92,7 @@ public class OrderApiController implements OrderApi {
     });
   }
 
-  private void confirmItemHasOptionId(final MenuItem item, final Integer menuOptionId) throws ResponseException {
+  private void confirmItemHasOptionId(final MenuItem item, final Integer menuOptionId) throws NotFound404Exception {
     for (MenuItemOption option : item.getAllowedOptions()) {
       if (Objects.equals(option.getId(), menuOptionId)) {
         return;
@@ -128,8 +128,7 @@ public class OrderApiController implements OrderApi {
   @Override
   public ResponseEntity<CreatedResponse> completeOrder(final Integer id) {
     return serveById(HttpStatus.ACCEPTED, () -> {
-      CustomerOrder order = customerOrderRepository.findOne(id);
-      confirmEntityFound(order, id);
+      CustomerOrder order = findOrThrow(customerOrderRepository, id);
       //noinspection HardCodedStringLiteral
       confirmEqual("Already Complete", Boolean.FALSE, order.getComplete()); // Test searches for this String.
       order.setComplete(Boolean.TRUE);
@@ -147,7 +146,7 @@ public class OrderApiController implements OrderApi {
   public ResponseEntity<Void> deleteOrder(final Integer id) {
     return serve(HttpStatus.ACCEPTED, () -> {
       confirmNeverNull(id);
-      customerOrderRepository.delete(id);
+      customerOrderRepository.deleteById(id);
       return null;
     });
   }
@@ -188,7 +187,7 @@ public class OrderApiController implements OrderApi {
   @Override
   public ResponseEntity<CustomerOrderDto> searchForOrder(final Integer id) {
     return serveOK(() -> {
-      CustomerOrder order = customerOrderRepository.findOne(id);
+      CustomerOrder order = findOrThrow(customerOrderRepository, id);
 //      SimpleDateFormat format = new SimpleDateFormat(PojoUtility.TIME_FORMAT);
       final OffsetDateTime orderTime = order.getOrderTime();
       if (orderTime != null) {
@@ -230,6 +229,6 @@ public class OrderApiController implements OrderApi {
   }
 
   CustomerOrder findByIdTestOnly(Integer id) {
-    return customerOrderRepository.findOne(id);
+    return customerOrderRepository.findById(id).orElse(null); // orElse(null) because this is for testing only
   }
 }

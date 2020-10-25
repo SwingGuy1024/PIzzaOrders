@@ -7,10 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import com.disney.miguelmunoz.challenge.entities.MenuItem;
 import com.disney.miguelmunoz.challenge.entities.MenuItemOption;
-import com.disney.miguelmunoz.framework.PojoUtility;
-import com.disney.miguelmunoz.framework.exception.BadRequest400Exception;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemOptionRepository;
 import com.disney.miguelmunoz.challenge.repositories.MenuItemRepository;
+import com.disney.miguelmunoz.framework.exception.BadRequest400Exception;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.api.MenuItemApi;
 import io.swagger.model.CreatedResponse;
@@ -70,8 +69,7 @@ public class MenuItemApiController implements MenuItemApi {
     return serveCreatedById(() -> {
       confirmNotEmpty(optionDto.getName()); // throws ResponseException
       MenuItemOption menuItemOption = objectMapper.convertValue(optionDto, MenuItemOption.class);
-      final MenuItem menuItem = menuItemRepository.findOne(menuItemId);
-      confirmEntityFound(menuItem, menuItemId);
+      final MenuItem menuItem = findOrThrow(menuItemRepository, menuItemId);
       menuItemOption.setMenuItem(menuItem);
       MenuItemOption savedOption = menuItemOptionRepository.save(menuItemOption);
       return savedOption.getId();
@@ -112,8 +110,7 @@ public class MenuItemApiController implements MenuItemApi {
     return serveOK(() -> {
       log.debug("Deleting menuItemOption with id {}", optionId);
 
-      MenuItemOption itemToDelete = menuItemOptionRepository.findOne(optionId);
-      PojoUtility.confirmEntityFound(itemToDelete, optionId);
+      MenuItemOption itemToDelete = findOrThrow(menuItemOptionRepository, optionId);
 
       // Before I can successfully delete the menuItemOption, I first have to set its menuItem to null. If I don't
       // do that, the delete call will fail. It doesn't help to set Cascade to Remove in the @ManyToOne annotation in 
@@ -131,8 +128,7 @@ public class MenuItemApiController implements MenuItemApi {
   public ResponseEntity<MenuItemDto> getMenuItem(final Integer id) {
     logHeaders();
     return serveOK(() -> {
-      MenuItem menuItem = menuItemRepository.findOne(id);
-      confirmEntityFound(menuItem, id);
+      MenuItem menuItem = findOrThrow(menuItemRepository, id);
       return objectMapper.convertValue(menuItem, MenuItemDto.class);
     });
   }
@@ -167,12 +163,12 @@ public class MenuItemApiController implements MenuItemApi {
   ////// Package-level methods for unit tests only! //////
 
   MenuItem getMenuItemTestOnly(int id) {
-    return menuItemRepository.findOne(id);
+    return menuItemRepository.findById(id).orElse(null); // orElse(null) because this is for testing only
   }
 
   MenuItemOption getMenuItemOptionTestOnly(int id) {
-    return menuItemOptionRepository.findOne(id);
-  }
+    return menuItemOptionRepository.findById(id).orElse(null); // orElse(null) because this is for testing only
+  } 
 
   List<MenuItemOption> findAllOptionsTestOnly() {
     return menuItemOptionRepository.findAll();

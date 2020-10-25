@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.disney</groupId>
@@ -17,31 +18,122 @@
 		<java.version>1.8</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<springfox-version>2.7.0</springfox-version>
+		<springfox-version>2.9.2</springfox-version>
 	</properties>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.10.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<!--<version>1.5.10.RELEASE</version>-->
+		<version>2.1.7.RELEASE</version>
+		<!--<relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;-->
 	</parent>
 
 	<build>
 		<sourceDirectory>src/main/java</sourceDirectory>
 		<plugins>
-<!--			<plugin>-->
-<!--				<groupId>org.springframework.boot</groupId>-->
-<!--				<artifactId>spring-boot-maven-plugin</artifactId>-->
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<goals>-->
-<!--							<goal>repackage</goal>-->
-<!--						</goals>-->
-<!--					</execution>-->
-<!--				</executions>-->
-<!--			</plugin>-->
-			
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- I tried the swagger plug-in, but it doesn't let me set the options I need to set. I can't specify Java 8, for example, -->
+			<!-- so it uses Joda time rather than the new Java 8 classes. -->
+			<!--			<plugin>-->
+			<!--				<groupId>io.swagger.codegen.v3</groupId>-->
+			<!--				<artifactId>swagger-codegen-maven-plugin</artifactId>-->
+			<!--				<version>3.0.22</version>-->
+			<!--				&lt;!&ndash;<groupId>io.swagger</groupId>&ndash;&gt;-->
+			<!--				&lt;!&ndash;<artifactId>swagger-codegen-maven-plugin</artifactId>&ndash;&gt;-->
+			<!--				&lt;!&ndash;<version>2.3.1</version>&ndash;&gt;-->
+			<!--				<executions>-->
+			<!--					<execution>-->
+			<!--						<goals>-->
+			<!--							<goal>generate</goal>-->
+			<!--						</goals>-->
+			<!--						<configuration>-->
+			<!--							<inputSpec>${project.basedir}/src/gen/pizzeria.yaml</inputSpec>-->
+			<!--							&lt;!&ndash;<output>${project.basedir}/src/gen/java</output>&ndash;&gt;-->
+			<!--							<language>spring</language>-->
+			<!--							<apiPackage>com.disney.miguelmunoz.challenge.server</apiPackage>-->
+			<!--							<modelPackage>com.disney.miguelmunoz.challenge.model</modelPackage>-->
+			<!--							<invokerPackage>com.disney.miguelmunoz.challenge</invokerPackage>-->
+			<!--							&lt;!&ndash;<generateSupportingFiles>false</generateSupportingFiles>&ndash;&gt;-->
+			<!--							<withXml>false</withXml>-->
+			<!--							<library>spring-boot</library>-->
+			<!--							&lt;!&ndash;<output>${project.basedir}/my-springboot</output> &lt;!&ndash; Added &ndash;&gt;&ndash;&gt;-->
+			<!--							<configOptions>-->
+			<!--								&lt;!&ndash;<sourceFolder>src/gen/java</sourceFolder>&ndash;&gt;-->
+			<!--								<sourceFolder>gen</sourceFolder>-->
+			<!--								<bigDecimalAsString>true</bigDecimalAsString>-->
+			<!--								<dateLibrary>java8</dateLibrary> &lt;!&ndash; Default&ndash;&gt;-->
+			<!--								&lt;!&ndash;<delegatePattern>false</delegatePattern>&ndash;&gt;-->
+			<!--								<performBeanValidation>true</performBeanValidation>-->
+			<!--								<useBeanValidation>true</useBeanValidation>-->
+			<!--								<skipDefaultInterface>true</skipDefaultInterface>-->
+			<!--								<library>spring-boot</library>-->
+			<!--								<interfaceOnly>true</interfaceOnly>-->
+			<!--							</configOptions>-->
+			<!--						</configuration>-->
+			<!--					</execution>-->
+			<!--				</executions>-->
+			<!--			</plugin>-->
+
+			<!--<plugin>-->
+			<!--	<groupId>org.openapitools</groupId>-->
+			<!--	<artifactId>openapi-generator-maven-plugin</artifactId>-->
+			<!--	&lt;!&ndash; RELEASE_VERSION &ndash;&gt;-->
+			<!--	<version>5.0.0-beta2</version>-->
+			<!--	&lt;!&ndash; /RELEASE_VERSION &ndash;&gt;-->
+			<!--	<executions>-->
+			<!--		<execution>-->
+			<!--			<goals>-->
+			<!--				<goal>generate</goal>-->
+			<!--			</goals>-->
+			<!--			<configuration>-->
+			<!--				&lt;!&ndash; General Configuration properties taken from &ndash;&gt;-->
+			<!--				&lt;!&ndash; https://github.com/OpenAPITools/openapi-generator/blob/master/modules/openapi-generator-maven-plugin/README.md &ndash;&gt;-->
+			<!--				&lt;!&ndash; Modifications from https://stackoverflow.com/questions/64304049/how-to-create-a-spring-boot-rest-server-using-openapitools/64363872#64363872 &ndash;&gt;-->
+			<!--				&lt;!&ndash;<ignoreFileOverride>${project.basedir}/my-springboot.ignores</ignoreFileOverride>  &lt;!&ndash;Added&ndash;&gt;&ndash;&gt;-->
+			<!--				<inputSpec>${project.basedir}/src/gen/pizzeria.yaml</inputSpec>-->
+			<!--				&lt;!&ndash;the language tag was replaced by the generatorName tag:&ndash;&gt;-->
+			<!--				<generatorName>spring</generatorName>-->
+			<!--				&lt;!&ndash;<templateDirectory>${project.basedir}/src/gen/templates/</templateDirectory>&ndash;&gt;-->
+			<!--				&lt;!&ndash; <output>${project.basedir}</output>&ndash;&gt;-->
+			<!--				&lt;!&ndash; Defaults to ${project.build.directory}/generated-sources/openapi &ndash;&gt;-->
+			<!--				<apiPackage>com.dummy.pizzeria.api</apiPackage>-->
+			<!--				<modelPackage>com.dummy.pizzeria.model</modelPackage>-->
+			<!--				<invokerPackage>com.dummy.pizzeria</invokerPackage>-->
+			<!--				<packageName>com.dummy.pizzeria.objects</packageName>-->
+			<!--				<groupId>neptunedreams</groupId>-->
+			<!--				<artifactId>pizzeria</artifactId>-->
+			<!--				<library>spring-boot</library>-->
+			<!--				<generateModelTests>false</generateModelTests>-->
+			<!--				&lt;!&ndash;<output>${project.basedir}/my-springboot</output> &lt;!&ndash; Added &ndash;&gt;&ndash;&gt;-->
+			<!--				&lt;!&ndash;<generateSupportingFiles>false</generateSupportingFiles>&ndash;&gt;-->
+			<!--				<configOptions>-->
+			<!--					&lt;!&ndash; configOptions are specific to the spring generator. These are taken from &ndash;&gt;-->
+			<!--					&lt;!&ndash; https://github.com/OpenAPITools/openapi-generator/blob/master/docs/generators/spring.md &ndash;&gt;-->
+			<!--					<sourceFolder>gen</sourceFolder>-->
+			<!--					<bigDecimalAsString>true</bigDecimalAsString>-->
+			<!--					<dateLibrary>java8</dateLibrary> &lt;!&ndash; Default&ndash;&gt;-->
+			<!--					<delegatePattern>false</delegatePattern>-->
+			<!--					<performBeanValidation>true</performBeanValidation>-->
+			<!--					<useBeanValidation>true</useBeanValidation>-->
+			<!--					<skipDefaultInterface>false</skipDefaultInterface>-->
+			<!--					<library>spring-boot</library>-->
+			<!--					<interfaceOnly>false</interfaceOnly>-->
+			<!--				</configOptions>-->
+			<!--			</configuration>-->
+			<!--		</execution>-->
+			<!--	</executions>-->
+			<!--</plugin>-->
 		</plugins>
 	</build>
 	<dependencies>
@@ -53,14 +145,18 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<version>2.3.4.RELEASE</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-jersey</artifactId>
-		</dependency>
+
+		<!--Put this one back?-->
+		<!--<dependency>-->
+		<!--	<groupId>org.springframework.boot</groupId>-->
+		<!--	<artifactId>spring-boot-starter-jersey</artifactId>-->
+		<!--</dependency>-->
 		<!--<dependency>-->
 		<!--<groupId>org.apache.cxf</groupId>-->
 		<!--<artifactId>cxf-spring-boot-starter-jaxrs</artifactId>-->
@@ -90,6 +186,14 @@
 			<version>${springfox-version}</version>
 		</dependency>
 
+		<!--Todo: Include this in the pom mustache file-->
+		<!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable -->
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.1</version>
+		</dependency>
+
 		<!--&lt;!&ndash;For Java 9, according to-->
 		<!--https://stackoverflow.com/questions/43574426/how-to-resolve-java-lang-noclassdeffounderror-javax-xml-bind-jaxbexception-in-j&ndash;&gt;-->
 		<!--&lt;!&ndash;Another longer solution is provided for Java 11 in that same stackoverflow question.&ndash;&gt;-->
@@ -108,36 +212,36 @@
 		<!--		For JDK 11-->
 
 		<!-- API, java.xml.bind module -->
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>2.3.2</version>
-		</dependency>
+		<!--<dependency>-->
+		<!--	<groupId>jakarta.xml.bind</groupId>-->
+		<!--	<artifactId>jakarta.xml.bind-api</artifactId>-->
+		<!--	<version>2.3.2</version>-->
+		<!--</dependency>-->
 
 		<!-- Runtime, com.sun.xml.bind module -->
-		<dependency>
-			<groupId>org.glassfish.jaxb</groupId>
-			<artifactId>jaxb-runtime</artifactId>
-			<version>2.3.2</version>
-		</dependency>
+		<!--<dependency>-->
+		<!--	<groupId>org.glassfish.jaxb</groupId>-->
+		<!--	<artifactId>jaxb-runtime</artifactId>-->
+		<!--	<version>2.3.2</version>-->
+		<!--</dependency>-->
 
 		<dependency>
 			<!--Handles serialization/deserialization of new Java Date/Time classes-->
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
-			<version>2.10.1</version> <!-- Was 2.6.5-->
+			<!--<version>2.10.1</version> &lt;!&ndash; Was 2.6.5&ndash;&gt;-->
 		</dependency>
 
 		<!-- Bean Validation API support -->
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
-			<version>1.1.0.Final</version>
+			<!--<version>1.1.0.Final</version>-->
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
+			<artifactId>jackson-annotations</artifactId>  
 			<version>2.10.1</version>
 		</dependency>
 
@@ -145,6 +249,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-actuator-docs</artifactId>
+			<version>1.5.10.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
